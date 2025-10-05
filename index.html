@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>受保护的可折叠内容</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin-top: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            border-radius: 2px;
+        }
+        
+        .intro {
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            color: #555;
+            text-align: justify;
+        }
+        
+        .collapsible {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .collapsible-header {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 18px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        
+        .collapsible-header::after {
+            content: '+';
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsible.active .collapsible-header::after {
+            transform: rotate(45deg);
+        }
+        
+        .password-section {
+            background: #f8f9fa;
+            padding: 20px;
+            display: none;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .password-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .password-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .password-input input:focus {
+            border-color: #6a11cb;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+        }
+        
+        .password-input button {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .password-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+        }
+        
+        .message {
+            font-size: 0.9rem;
+            color: #e74c3c;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+        
+        .collapsible-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            background: white;
+        }
+        
+        .collapsible-content .content {
+            padding: 25px;
+            line-height: 1.7;
+            color: #555;
+        }
+        
+        .collapsible-content .content h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .collapsible-content .content p {
+            margin-bottom: 15px;
+        }
+        
+        .success {
+            color: #27ae60 !important;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>受保护的内容区域</h1>
+        
+        <div class="intro">
+            <p>欢迎访问我们的信息中心。本页面包含三个受密码保护的内容区域，每个区域都需要正确的密码才能访问。请点击下面的标题，输入相应密码以查看详细信息。</p>
+        </div>
+        
+        <div class="collapsible" id="section1">
+            <div class="collapsible-header">
+                <span>技术文档与规范</span>
+            </div>
+            <div class="password-section">
+                <div class="password-input">
+                    <input type="password" placeholder="请输入访问密码" class="password-field">
+                    <button class="submit-btn">验证</button>
+                </div>
+                <div class="message"></div>
+            </div>
+            <div class="collapsible-content">
+                <div class="content">
+                    <h3>技术文档与规范</h3>
+                    <p>本部分包含详细的技术文档、API参考和开发规范。这些文档为开发人员提供了必要的技术指导，确保项目的一致性和质量。</p>
+                    <p>主要内容包括：</p>
+                    <ul>
+                        <li>系统架构设计文档</li>
+                        <li>API接口规范</li>
+                        <li>代码编写规范</li>
+                        <li>数据库设计文档</li>
+                        <li>部署与运维指南</li>
+                    </ul>
+                    <p>这些文档会定期更新，以反映最新的技术决策和最佳实践。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="collapsible" id="section2">
+            <div class="collapsible-header">
+                <span>财务数据与报告</span>
+            </div>
+            <div class="password-section">
+                <div class="password-input">
+                    <input type="password" placeholder="请输入访问密码" class="password-field">
+                    <button class="submit-btn">验证</button>
+                </div>
+                <div class="message"></div>
+            </div>
+            <div class="collapsible-content">
+                <div class="content">
+                    <h3>财务数据与报告</h3>
+                    <p>本部分包含公司的财务数据、季度报告和预算信息。这些数据仅供授权人员访问，确保公司财务信息的保密性。</p>
+                    <p>主要内容包括：</p>
+                    <ul>
+                        <li>季度财务报告</li>
+                        <li>年度预算与预测</li>
+                        <li>收入与支出明细</li>
+                        <li>投资与资产信息</li>
+                        <li>审计报告</li>
+                    </ul>
+                    <p>所有财务数据均经过专业审计，确保准确性和合规性。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="collapsible" id="section3">
+            <div class="collapsible-header">
+                <span>人力资源信息</span>
+            </div>
+            <div class="password-section">
+                <div class="password-input">
+                    <input type="password" placeholder="请输入访问密码" class="password-field">
+                    <button class="submit-btn">验证</button>
+                </div>
+                <div class="message"></div>
+            </div>
+            <div class="collapsible-content">
+                <div class="content">
+                    <h3>人力资源信息</h3>
+                    <p>本部分包含公司的人力资源政策、员工信息和组织架构。这些信息仅供内部管理人员访问，保护员工隐私和公司机密。</p>
+                    <p>主要内容包括：</p>
+                    <ul>
+                        <li>员工手册与政策</li>
+                        <li>组织架构与职位描述</li>
+                        <li>薪酬福利信息</li>
+                        <li>绩效评估流程</li>
+                        <li>培训与发展计划</li>
+                    </ul>
+                    <p>人力资源部门会定期更新这些信息，确保符合最新的法律法规和公司政策。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2023 信息安全中心 | 所有内容均受密码保护</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置每个部分的密码（实际应用中应从服务器获取）
+            const passwords = {
+                'section1': 'tech2023',
+                'section2': 'finance123',
+                'section3': 'hr456'
+            };
+            
+            // 为每个可折叠部分添加事件监听器
+            document.querySelectorAll('.collapsible').forEach(section => {
+                const header = section.querySelector('.collapsible-header');
+                const passwordSection = section.querySelector('.password-section');
+                const content = section.querySelector('.collapsible-content');
+                const passwordInput = section.querySelector('.password-field');
+                const submitBtn = section.querySelector('.submit-btn');
+                const message = section.querySelector('.message');
+                
+                // 点击标题时切换密码输入区域
+                header.addEventListener('click', function() {
+                    // 如果内容已经展开，则关闭
+                    if (section.classList.contains('active')) {
+                        section.classList.remove('active');
+                        passwordSection.style.display = 'none';
+                        content.style.maxHeight = '0';
+                        content.style.padding = '0';
+                    } else {
+                        // 关闭其他所有展开的部分
+                        document.querySelectorAll('.collapsible').forEach(s => {
+                            if (s !== section) {
+                                s.classList.remove('active');
+                                s.querySelector('.password-section').style.display = 'none';
+                                s.querySelector('.collapsible-content').style.maxHeight = '0';
+                                s.querySelector('.collapsible-content').style.padding = '0';
+                            }
+                        });
+                        
+                        // 展开当前部分
+                        section.classList.add('active');
+                        passwordSection.style.display = 'block';
+                    }
+                });
+                
+                // 密码验证
+                submitBtn.addEventListener('click', function() {
+                    const sectionId = section.id;
+                    const enteredPassword = passwordInput.value;
+                    
+                    if (enteredPassword === passwords[sectionId]) {
+                        message.textContent = '密码正确！正在展开内容...';
+                        message.classList.add('success');
+                        
+                        // 展开内容区域
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        content.style.padding = '0';
+                        
+                        // 清空密码字段
+                        passwordInput.value = '';
+                        
+                        // 2秒后清除消息
+                        setTimeout(() => {
+                            message.textContent = '';
+                            message.classList.remove('success');
+                        }, 2000);
+                    } else {
+                        message.textContent = '密码错误，请重试！';
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                    }
+                });
+                
+                // 支持按Enter键提交密码
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitBtn.click();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
