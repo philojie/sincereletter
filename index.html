@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级内容保护系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-color: #5a67d8;
+            --secondary-color: #805ad5;
+            --accent-color: #f6ad55;
+            --bg-color-1: #a1c4fd;
+            --bg-color-2: #c2e9fb;
+            --bg-color-3: #fbc2eb;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-color-1), var(--bg-color-2), var(--bg-color-3));
+            color: #333;
+            min-height: 100vh;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+        
+        /* 增强的液态玻璃弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            animation: scaleIn 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 45%,
+                rgba(255, 255, 255, 0) 50%,
+                rgba(255, 255, 255, 0.05) 55%,
+                rgba(255, 255, 255, 0.1) 100%
+            );
+            z-index: -1;
+        }
+        
+        .glass-modal::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: shimmer 8s infinite linear;
+            z-index: -1;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-header h2 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-content {
+            margin-bottom: 25px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            margin-top: 20px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            transition: color 0.5s ease;
+        }
+        
+        .modal-content p {
+            color: #444;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .understand-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(90, 103, 216, 0.4);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            min-width: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .understand-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .timer-text {
+            margin-left: 8px;
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        /* 流星雨遮罩 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .envelope-container {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .envelope-container h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: color 0.5s ease;
+        }
+        
+        .envelope-container p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: #555;
+            max-width: 500px;
+        }
+        
+        .open-envelope-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(90, 103, 216, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .open-envelope-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(90, 103, 216, 0.6);
+        }
+        
+        /* 流星雨效果 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        
+        .shooting-star {
+            position: absolute;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,1));
+            transform: rotate(-45deg);
+            animation: shooting var(--duration) infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes shooting {
+            0% {
+                transform: translateX(0) translateY(0) rotate(-45deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(300px) translateY(300px) rotate(-45deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 装饰性背景元素 */
+        .decoration {
+            position: absolute;
+            z-index: 0;
+            opacity: 0.1;
+        }
+        
+        .circle-1 {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: var(--bg-color-1);
+            top: -50px;
+            right: -50px;
+            transition: background 0.5s ease;
+        }
+        
+        .circle-2 {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--bg-color-3);
+            bottom: -40px;
+            left: -40px;
+            transition: background 0.5s ease;
+        }
+        
+        .triangle {
+            width: 0;
+            height: 0;
+            border-left: 100px solid transparent;
+            border-right: 100px solid transparent;
+            border-bottom: 173px solid var(--bg-color-2);
+            top: 30%;
+            left: 75%;
+            transform: rotate(45deg);
+            transition: border-bottom-color 0.5s ease;
+        }
+        
+        /* 时间显示栏样式 */
+        .time-display {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 10px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            z-index: 100;
+            animation: slideInFromTop 1s ease-out;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            max-width: 220px;
+        }
+        
+        .time-display h3 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.5s ease;
+        }
+        
+        .time-value {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: color 0.5s ease;
+        }
+        
+        .time-value i {
+            color: var(--accent-color);
+            transition: color 0.5s ease;
+        }
+        
+        /* 毫秒开关样式 */
+        .milliseconds-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 8px;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            transition: color 0.5s ease;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 18px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 18px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+            transition: background-color 0.5s ease;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(18px);
+        }
+        
+        /* 找到我按钮样式 */
+        .find-me-container {
+            margin-top: 8px;
+        }
+        
+        .find-me-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .find-me-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(90, 103, 216, 0.3);
+        }
+        
+        .find-me-content {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: #555;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .find-me-content p {
+            margin-bottom: 5px;
+        }
+        
+        .find-me-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+            padding: 30px;
+            margin-top: 60px;
+            animation: fadeIn 1.5s ease-out;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInFromTop {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 18px;
+            font-size: 2.2rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: background 0.5s ease;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 3px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            border-radius: 2px;
+            transition: background 0.5s ease;
+        }
+        
+        .intro {
+            line-height: 1.6;
+            margin-bottom: 35px;
+            font-size: 1rem;
+            color: #555;
+            text-align: center;
+            padding: 0 12px;
+            position: relative;
+        }
+        
+        .intro::before, .intro::after {
+            content: '"';
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            position: absolute;
+            opacity: 0.3;
+            transition: color 0.5s ease;
+        }
+        
+        .intro::before {
+            top: -20px;
+            left: 0;
+        }
+        
+        .intro::after {
+            bottom: -30px;
+            right: 0;
+        }
+        
+        .collapsible {
+            margin-bottom: 20px;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s ease;
+            background: white;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .collapsible::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color), var(--accent-color));
+            opacity: 0;
+            transition: opacity 0.3s ease, background 0.5s ease;
+        }
+        
+        .collapsible:hover::before {
+            opacity: 1;
+        }
+        
+        .collapsible:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+        }
+        
+        .collapsible-header {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 18px 22px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease, background 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .collapsible-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .collapsible-header:hover::before {
+            left: 100%;
+        }
+        
+        .collapsible-header:hover {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+        }
+        
+        .collapsible-header i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .collapsible-header::after {
+            content: '+';
+            font-size: 1.6rem;
+            transition: transform 0.4s ease;
+        }
+        
+        .collapsible.active .collapsible-header::after {
+            transform: rotate(45deg);
+        }
+        
+        .password-section {
+            background: #f8f9fa;
+            padding: 22px;
+            display: none;
+            border-bottom: 1px solid #eaeaea;
+            animation: slideDown 0.5s ease-out;
+            position: relative;
+        }
+        
+        .password-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color), var(--accent-color));
+            transition: background 0.5s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 200px; }
+        }
+        
+        .password-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .password-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background: white;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .password-input input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1), inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .password-input button {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s, background 0.5s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(90, 103, 216, 0.25);
+        }
+        
+        .password-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(90, 103, 216, 0.35);
+        }
+        
+        .message {
+            font-size: 0.95rem;
+            color: #e53e3e;
+            margin-top: 5px;
+            min-height: 22px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        
+        .success {
+            color: #38a169 !important;
+        }
+        
+        .collapsible-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            background: white;
+        }
+        
+        .collapsible-content .content {
+            padding: 25px;
+            line-height: 1.6;
+            color: #555;
+            animation: fadeInContent 0.7s ease-out;
+            background: linear-gradient(to bottom, white, #f9fafb);
+        }
+        
+        @keyframes fadeInContent {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .collapsible-content .content h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+            font-weight: 600;
+            transition: color 0.5s ease, border-left-color 0.5s ease;
+        }
+        
+        .collapsible-content .content p {
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .collapsible-content .content ul {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .collapsible-content .content li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .collapsible-content .content li::before {
+            content: '•';
+            color: var(--secondary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: absolute;
+            left: -8px;
+            top: -2px;
+            transition: color 0.5s ease;
+        }
+        
+        footer {
+            margin-top: 35px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            padding: 12px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .floating-icons {
+            position: absolute;
+            font-size: 1.6rem;
+            color: rgba(255, 255, 255, 0.25);
+            z-index: 1;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .icon-1 {
+            top: 8%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+        
+        .icon-2 {
+            top: 18%;
+            right: 8%;
+            animation-delay: 1s;
+        }
+        
+        .icon-3 {
+            bottom: 12%;
+            left: 10%;
+            animation-delay: 2s;
+        }
+        
+        .icon-4 {
+            bottom: 22%;
+            right: 5%;
+            animation-delay: 3s;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(8deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        /* 颜色选择滑动条 */
+        .color-slider-container {
+            position: fixed;
+            left: calc(50% + 455px); /* 容器宽度的一半 + 2mm */
+            top: 0;
+            height: 100%;
+            width: 5mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 50;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        
+        .color-slider {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #5a67d8, #805ad5, #f6ad55, #48bb78, #38a169, #9f7aea, #ed64a6);
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+        
+        .color-slider::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, 
+                rgba(255,255,255,0.2) 0%, 
+                rgba(255,255,255,0.1) 50%, 
+                rgba(0,0,0,0.1) 100%);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+        
+        .slider-thumb {
+            position: absolute;
+            left: -5px;
+            width: 15px;
+            height: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            cursor: grab;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+        
+        .slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        
+        .color-tooltip {
+            position: absolute;
+            left: 25px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .color-slider:hover .color-tooltip {
+            opacity: 1;
+        }
+        
+        /* 移动设备优化 */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                padding: 20px 18px;
+                margin-top: 50px;
+                border-radius: 14px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .time-display {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 20px;
+                width: 100%;
+                max-width: none;
+                padding: 10px 12px;
+            }
+            
+            .time-display h3 {
+                font-size: 0.8rem;
+            }
+            
+            .time-value {
+                font-size: 0.9rem;
+            }
+            
+            .password-input {
+                flex-direction: column;
+            }
+            
+            .collapsible-header {
+                padding: 16px 18px;
+                font-size: 1rem;
+            }
+            
+            .collapsible-content .content {
+                padding: 20px;
+            }
+            
+            .intro {
+                padding: 0 8px;
+                font-size: 0.95rem;
+            }
+            
+            .intro::before, .intro::after {
+                font-size: 2rem;
+            }
+            
+            .intro::before {
+                top: -15px;
+            }
+            
+            .intro::after {
+                bottom: -25px;
+            }
+            
+            .circle-1 {
+                width: 150px;
+                height: 150px;
+                top: -40px;
+                right: -40px;
+            }
+            
+            .circle-2 {
+                width: 120px;
+                height: 120px;
+                bottom: -30px;
+                left: -30px;
+            }
+            
+            .triangle {
+                border-left: 70px solid transparent;
+                border-right: 70px solid transparent;
+                border-bottom: 121px solid var(--bg-color-2);
+                top: 25%;
+                left: 70%;
+            }
+            
+            .floating-icons {
+                font-size: 1.3rem;
+            }
+            
+            /* 弹窗移动端适配 */
+            .glass-modal {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .modal-header h2 {
+                font-size: 1.6rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .understand-btn {
+                min-width: 160px;
+            }
+            
+            /* 流星雨遮罩移动端适配 */
+            .envelope-container h1 {
+                font-size: 2.2rem;
+            }
+            
+            .envelope-container p {
+                font-size: 1rem;
+            }
+            
+            /* 颜色滑动条移动端适配 */
+            .color-slider-container {
+                left: auto;
+                right: 5px;
+                width: 5mm;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 18px 15px;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            .collapsible-header {
+                padding: 14px 16px;
+                font-size: 0.95rem;
+            }
+            
+            .collapsible-header i {
+                font-size: 1.1rem;
+            }
+            
+            .collapsible-content .content {
+                padding: 16px;
+            }
+            
+            .password-section {
+                padding: 18px;
+            }
+            
+            footer {
+                font-size: 0.9rem;
+            }
+            
+            /* 弹窗移动端适配 */
+            .modal-header h2 {
+                font-size: 1.4rem;
+            }
+            
+            .subtitle {
+                font-size: 1.05rem;
+            }
+            
+            .understand-btn {
+                min-width: 140px;
+            }
+            
+            /* 流星雨遮罩移动端适配 */
+            .envelope-container h1 {
+                font-size: 1.8rem;
+            }
+            
+            .envelope-container p {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 液态玻璃弹窗 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="glass-modal">
+            <div class="modal-header">
+                <h2>欢迎提示</h2>
+            </div>
+            <div class="modal-content">
+                <div class="subtitle">重要通知</div>
+                <p>欢迎访问我们的网站！我们非常重视您的体验，并致力于为您提供最佳的服务。请花一点时间阅读以下重要信息。</p>
+                
+                <div class="subtitle">使用说明</div>
+                <p>本网站采用了最新的前端技术，确保在各种设备上都能流畅运行。如果您遇到任何问题，请随时联系我们的技术支持团队。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="understand-btn" id="understandBtn" disabled>
+                    我明白了 <span class="timer-text" id="timerText">(5)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 流星雨遮罩 -->
+    <div class="overlay">
+        <div class="stars" id="stars"></div>
+        <div class="envelope-container">
+            <h1>神秘的信封</h1>
+            <p>点击下方按钮打开信封，探索隐藏的内容。这封信包含了重要的信息和惊喜等待您发现。</p>
+            <br>
+            <br>
+            <button class="open-envelope-btn" id="openEnvelopeBtn">打开信封</button>
+        </div>
+    </div>
+    
+    <!-- 颜色选择滑动条 -->
+    <div class="color-slider-container">
+        <div class="color-slider" id="colorSlider">
+            <div class="slider-thumb" id="sliderThumb"></div>
+            <div class="color-tooltip" id="colorTooltip">当前颜色</div>
+        </div>
+    </div>
+    
+    <!-- 装饰性背景元素 -->
+    <div class="decoration circle-1"></div>
+    <div class="decoration circle-2"></div>
+    <div class="decoration triangle"></div>
+    
+    <!-- 浮动图标 -->
+    <div class="floating-icons icon-1"><i class="fas fa-paint-brush"></i></div>
+    <div class="floating-icons icon-2"><i class="fas fa-paint-brush"></i></div>
+    <div class="floating-icons icon-3"><i class="fas fa-paint-brush"></i></div>
+    <div class="floating-icons icon-4"><i class="fas fa-paint-brush"></i></div>
+    
+    <!-- 时间显示栏 -->
+    <div class="time-display">
+        <h3>项目已持续</h3>
+        <div class="time-value"><i class="fas fa-clock"></i> <span id="timeDisplay">0年 0月 0天 0时 0分 0秒 00</span></div>
+        
+        <!-- 毫秒开关 -->
+        <div class="milliseconds-toggle">
+            <span>展示毫秒</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="millisecondsToggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <!-- 找到我按钮 -->
+        <div class="find-me-container">
+            <button class="find-me-btn" id="findMeBtn">
+                <i class="fas fa-search"></i> 找到我
+            </button>
+            <div class="find-me-content" id="findMeContent">
+                <p>1. 这是一个隐藏的信息区域，包含三行文字。</p>
+                <p>2. 您可以在这里添加任何您想要展示的内容。</p>
+                <p>3. 这段文字在点击"找到我"按钮后才会显示。</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h1>高级内容保护系统</h1>
+        
+        <div class="intro">
+            <p>欢迎访问我们的高级内容保护系统。本页面包含三个受密码保护的内容区域，每个区域都需要正确的密码才能访问。请点击下面的标题，输入相应密码以查看详细信息。</p>
+        </div>
+        
+        <div class="collapsible" id="section1">
+            <div class="collapsible-header">
+                <span><i class="fas fa-paint-brush"></i> 技术文档与规范</span>
+            </div>
+            <div class="password-section">
+                <div class="password-input">
+                    <input type="password" placeholder="请输入访问密码" class="password-field">
+                    <button class="submit-btn"><i class="fas fa-key"></i> 验证</button>
+                </div>
+                <div class="message"></div>
+            </div>
+            <div class="collapsible-content">
+                <div class="content">
+                    <h3>技术文档与规范</h3>
+                    <p>本部分包含详细的技术文档、API参考和开发规范。这些文档为开发人员提供了必要的技术指导，确保项目的一致性和质量。</p>
+                    <p>主要内容包括：</p>
+                    <ul>
+                        <li>系统架构设计文档</li>
+                        <li>API接口规范</li>
+                        <li>代码编写规范</li>
+                        <li>数据库设计文档</li>
+                        <li>部署与运维指南</li>
+                        <li>安全协议与加密标准</li>
+                    </ul>
+                    <p>这些文档会定期更新，以反映最新的技术决策和最佳实践。所有访问记录都会被记录并监控，确保文档安全。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="collapsible" id="section2">
+            <div class="collapsible-header">
+                <span><i class="fas fa-paint-brush"></i> 财务数据与报告</span>
+            </div>
+            <div class="password-section">
+                <div class="password-input">
+                    <input type="password" placeholder="请输入访问密码" class="password-field">
+                    <button class="submit-btn"><i class="fas fa-key"></i> 验证</button>
+                </div>
+                <div class="message"></div>
+            </div>
+            <div class="collapsible-content">
+                <div class="content">
+                    <h3>财务数据与报告</h3>
+                    <p>本部分包含公司的财务数据、季度报告和预算信息。这些数据仅供授权人员访问，确保公司财务信息的保密性。</p>
+                    <p>主要内容包括：</p>
+                    <ul>
+                        <li>季度财务报告</li>
+                        <li>年度预算与预测</li>
+                        <li>收入与支出明细</li>
+                        <li>投资与资产信息</li>
+                        <li>审计报告</li>
+                        <li>税务文件与合规记录</li>
+                    </ul>
+                    <p>所有财务数据均经过专业审计，确保准确性和合规性。访问此部分需要高级权限，所有操作都会被记录。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="collapsible" id="section3">
+            <div class="collapsible-header">
+                <span><i class="fas fa-paint-brush"></i> 人力资源信息</span>
+            </div>
+            <div class="password-section">
+                <div class="password-input">
+                    <input type="password" placeholder="请输入访问密码" class="password-field">
+                    <button class="submit-btn"><i class="fas fa-key"></i> 验证</button>
+                </div>
+                <div class="message"></div>
+            </div>
+            <div class="collapsible-content">
+                <div class="content">
+                    <h3>人力资源信息</h3>
+                    <p>本部分包含公司的人力资源政策、员工信息和组织架构。这些信息仅供内部管理人员访问，保护员工隐私和公司机密。</p>
+                    <p>主要内容包括：</p>
+                    <ul>
+                        <li>员工手册与政策</li>
+                        <li>组织架构与职位描述</li>
+                        <li>薪酬福利信息</li>
+                        <li>绩效评估流程</li>
+                        <li>培训与发展计划</li>
+                        <li>招聘与入职流程</li>
+                    </ul>
+                    <p>人力资源部门会定期更新这些信息，确保符合最新的法律法规和公司政策。所有访问均需授权，并受到严格监控。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2023 高级内容保护系统 | 所有内容均受密码保护和安全监控</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 弹窗倒计时
+            const understandBtn = document.getElementById('understandBtn');
+            const timerText = document.getElementById('timerText');
+            let countdown = 5;
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                timerText.textContent = `(${countdown})`;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    understandBtn.disabled = false;
+                    timerText.textContent = '';
+                    // 倒计时结束后，确保按钮内容居中
+                    understandBtn.innerHTML = '我明白了';
+                }
+            }, 1000);
+            
+            // 关闭弹窗
+            understandBtn.addEventListener('click', function() {
+                document.getElementById('modalOverlay').style.display = 'none';
+            });
+            
+            // 创建流星雨效果
+            const starsContainer = document.getElementById('stars');
+            const starCount = 150;
+            const shootingStarCount = 5;
+            
+            // 创建星星
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+                starsContainer.appendChild(star);
+            }
+            
+            // 创建流星
+            for (let i = 0; i < shootingStarCount; i++) {
+                const shootingStar = document.createElement('div');
+                shootingStar.classList.add('shooting-star');
+                shootingStar.style.left = `${Math.random() * 100}%`;
+                shootingStar.style.top = `${Math.random() * 100}%`;
+                shootingStar.style.setProperty('--duration', `${Math.random() * 10 + 10}s`);
+                shootingStar.style.animationDelay = `${Math.random() * 10}s`;
+                starsContainer.appendChild(shootingStar);
+            }
+            
+            // 打开信封按钮
+            document.getElementById('openEnvelopeBtn').addEventListener('click', function() {
+                document.querySelector('.overlay').classList.add('hidden');
+            });
+            
+            // 颜色选择滑动条功能
+            const colorSlider = document.getElementById('colorSlider');
+            const sliderThumb = document.getElementById('sliderThumb');
+            const colorTooltip = document.getElementById('colorTooltip');
+            
+            // 预设颜色主题
+            const colorThemes = [
+                { name: "蓝紫", primary: "#5a67d8", secondary: "#805ad5", accent: "#f6ad55", bg1: "#a1c4fd", bg2: "#c2e9fb", bg3: "#fbc2eb" },
+                { name: "青绿", primary: "#0ea5e9", secondary: "#06b6d4", accent: "#10b981", bg1: "#a5f3fc", bg2: "#cffafe", bg3: "#d1fae5" },
+                { name: "粉紫", primary: "#ec4899", secondary: "#a855f7", accent: "#f59e0b", bg1: "#fbcfe8", bg2: "#e9d5ff", bg3: "#fef3c7" },
+                { name: "蓝绿", primary: "#0891b2", secondary: "#0d9488", accent: "#f59e0b", bg1: "#a5f3fc", bg2: "#99f6e4", bg3: "#fef3c7" },
+                { name: "紫红", primary: "#7c3aed", secondary: "#db2777", accent: "#f97316", bg1: "#ddd6fe", bg2: "#fbcfe8", bg3: "#fed7aa" },
+                { name: "青蓝", primary: "#06b6d4", secondary: "#3b82f6", accent: "#10b981", bg1: "#a5f3fc", bg2: "#bfdbfe", bg3: "#a7f3d0" },
+                { name: "橙黄", primary: "#f59e0b", secondary: "#eab308", accent: "#84cc16", bg1: "#fef3c7", bg2: "#fef9c3", bg3: "#d9f99d" }
+            ];
+            
+            // 初始化滑块位置
+            let currentPosition = 0;
+            updateSliderPosition(currentPosition);
+            
+            // 滑块拖动功能
+            let isDragging = false;
+            
+            sliderThumb.addEventListener('mousedown', startDrag);
+            colorSlider.addEventListener('mousedown', jumpToPosition);
+            
+            function startDrag(e) {
+                isDragging = true;
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
+                e.preventDefault();
+            }
+            
+            function onDrag(e) {
+                if (!isDragging) return;
+                
+                const sliderRect = colorSlider.getBoundingClientRect();
+                let newPosition = (e.clientY - sliderRect.top) / sliderRect.height;
+                newPosition = Math.max(0, Math.min(1, newPosition));
+                
+                updateSliderPosition(newPosition);
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+            
+            function jumpToPosition(e) {
+                const sliderRect = colorSlider.getBoundingClientRect();
+                let newPosition = (e.clientY - sliderRect.top) / sliderRect.height;
+                newPosition = Math.max(0, Math.min(1, newPosition));
+                
+                updateSliderPosition(newPosition);
+            }
+            
+            function updateSliderPosition(position) {
+                currentPosition = position;
+                const thumbPosition = position * (colorSlider.offsetHeight - sliderThumb.offsetHeight);
+                sliderThumb.style.top = `${thumbPosition}px`;
+                
+                // 根据位置选择颜色主题
+                const themeIndex = Math.floor(position * (colorThemes.length - 1));
+                applyColorTheme(colorThemes[themeIndex]);
+                
+                // 更新工具提示
+                colorTooltip.textContent = colorThemes[themeIndex].name;
+            }
+            
+            function applyColorTheme(theme) {
+                document.documentElement.style.setProperty('--primary-color', theme.primary);
+                document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+                document.documentElement.style.setProperty('--accent-color', theme.accent);
+                document.documentElement.style.setProperty('--bg-color-1', theme.bg1);
+                document.documentElement.style.setProperty('--bg-color-2', theme.bg2);
+                document.documentElement.style.setProperty('--bg-color-3', theme.bg3);
+            }
+            
+            // 原有功能代码
+            // 设置每个部分的密码
+            const passwords = {
+                'section1': 'tech2023',
+                'section2': 'finance123',
+                'section3': 'hr456'
+            };
+            
+            // 毫秒显示状态
+            let showMilliseconds = true;
+            
+            // 更新时间显示 - 精确到百分秒 (00-99)
+            function updateTimeDisplay() {
+                // 设定起始时间（2020年1月1日）
+                const startDate = new Date('2020-01-01');
+                const now = new Date();
+                
+                // 计算时间差（毫秒）
+                const diffMs = now - startDate;
+                
+                // 计算年、月、日、小时、分钟、秒、百分秒
+                const years = Math.floor(diffMs / (365.25 * 24 * 60 * 60 * 1000));
+                const months = Math.floor((diffMs % (365.25 * 24 * 60 * 60 * 1000)) / (30.44 * 24 * 60 * 60 * 1000));
+                const days = Math.floor((diffMs % (30.44 * 24 * 60 * 60 * 1000)) / (24 * 60 * 60 * 1000));
+                const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                const minutes = Math.floor((diffMs % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((diffMs % (60 * 1000)) / 1000);
+                const centiseconds = Math.floor((diffMs % 1000) / 10); // 百分秒 (00-99)
+                
+                // 格式化百分秒为两位数
+                const formattedCentiseconds = centiseconds.toString().padStart(2, '0');
+                
+                // 根据开关状态决定是否显示百分秒
+                let timeText = `${years}年 ${months}月 ${days}天 ${hours}时 ${minutes}分 ${seconds}秒`;
+                if (showMilliseconds) {
+                    timeText += ` ${formattedCentiseconds}`;
+                }
+                
+                // 更新显示
+                document.getElementById('timeDisplay').textContent = timeText;
+            }
+            
+            // 初始化时间显示并每10毫秒更新一次
+            updateTimeDisplay();
+            setInterval(updateTimeDisplay, 10);
+            
+            // 毫秒开关功能
+            const millisecondsToggle = document.getElementById('millisecondsToggle');
+            millisecondsToggle.addEventListener('change', function() {
+                showMilliseconds = this.checked;
+                updateTimeDisplay();
+            });
+            
+            // 找到我按钮功能
+            const findMeBtn = document.getElementById('findMeBtn');
+            const findMeContent = document.getElementById('findMeContent');
+            findMeBtn.addEventListener('click', function() {
+                if (findMeContent.style.display === 'block') {
+                    findMeContent.style.display = 'none';
+                } else {
+                    findMeContent.style.display = 'block';
+                }
+            });
+            
+            // 为每个可折叠部分添加事件监听器
+            document.querySelectorAll('.collapsible').forEach(section => {
+                const header = section.querySelector('.collapsible-header');
+                const passwordSection = section.querySelector('.password-section');
+                const content = section.querySelector('.collapsible-content');
+                const passwordInput = section.querySelector('.password-field');
+                const submitBtn = section.querySelector('.submit-btn');
+                const message = section.querySelector('.message');
+                
+                // 点击标题时切换密码输入区域
+                header.addEventListener('click', function() {
+                    // 如果内容已经展开，则关闭
+                    if (section.classList.contains('active')) {
+                        section.classList.remove('active');
+                        passwordSection.style.display = 'none';
+                        content.style.maxHeight = '0';
+                        content.style.padding = '0';
+                    } else {
+                        // 关闭其他所有展开的部分
+                        document.querySelectorAll('.collapsible').forEach(s => {
+                            if (s !== section) {
+                                s.classList.remove('active');
+                                s.querySelector('.password-section').style.display = 'none';
+                                s.querySelector('.collapsible-content').style.maxHeight = '0';
+                                s.querySelector('.collapsible-content').style.padding = '0';
+                            }
+                        });
+                        
+                        // 展开当前部分
+                        section.classList.add('active');
+                        passwordSection.style.display = 'block';
+                        
+                        // 自动聚焦到密码输入框
+                        setTimeout(() => {
+                            passwordInput.focus();
+                        }, 300);
+                    }
+                });
+                
+                // 密码验证
+                submitBtn.addEventListener('click', function() {
+                    const sectionId = section.id;
+                    const enteredPassword = passwordInput.value;
+                    
+                    if (enteredPassword === passwords[sectionId]) {
+                        message.innerHTML = '<i class="fas fa-check-circle"></i> 密码正确！正在展开内容...';
+                        message.classList.add('success');
+                        
+                        // 展开内容区域
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        content.style.padding = '0';
+                        
+                        // 清空密码字段
+                        passwordInput.value = '';
+                        
+                        // 2秒后清除消息
+                        setTimeout(() => {
+                            message.textContent = '';
+                            message.classList.remove('success');
+                        }, 2000);
+                    } else {
+                        message.innerHTML = '<i class="fas fa-exclamation-circle"></i> 密码错误，请重试！';
+                        passwordInput.value = '';
+                        passwordInput.focus();
+                        
+                        // 添加错误动画
+                        passwordInput.style.animation = 'shake 0.5s';
+                        setTimeout(() => {
+                            passwordInput.style.animation = '';
+                        }, 500);
+                    }
+                });
+                
+                // 支持按Enter键提交密码
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitBtn.click();
+                    }
+                });
+            });
+            
+            // 添加抖动动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                    20%, 40%, 60%, 80% { transform: translateX(5px); }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
