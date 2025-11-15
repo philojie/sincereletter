@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>毛玻璃页面 · 手动播放融合扩展版</title>
+<meta name="theme-color" content="#0a0a0a" />
+<style>
+/* =========================
+   原网站样式（保持）
+   ========================= */
+:root{
+  --brandA:#7C8CFF; --brandB:#FF83C6; --glass: rgba(255,255,255,.28);
+  --border: rgba(255,255,255,.55);
+  --muted:#6b7280; --ink:#111827; --radius:20px; --t:.28s cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%; margin:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Segoe UI,Roboto,Arial,sans-serif; background:
+ radial-gradient(1200px 800px at 20% -10%, #e8ecff 0%, transparent 55%),
+ radial-gradient(1200px 900px at 120% 20%, #ffe7f6 0%, transparent 60%),
+ linear-gradient(135deg, #E0E9FF 0%, #FDE2FF 100%); color:var(--ink);}
+.wrap{width:min(1080px,96vw); padding:env(safe-area-inset-top,16px) 16px 90px;}
+.blobs{position:fixed; inset:0; pointer-events:none; z-index:0; filter: blur(22px) saturate(130%)}
+.blob{position:absolute; border-radius:999px; background:conic-gradient(from 180deg, rgba(124,140,255,.75), rgba(255,131,198,.75)); mix-blend-mode:screen; opacity:.55; animation:floatY 18s ease-in-out infinite}
+.blob.b1{width:42vmin;height:42vmin;left:-6vmin;top:6vmin}
+.blob.b2{width:56vmin;height:56vmin;right:-10vmin;top:20vmin}
+.blob.b3{width:48vmin;height:48vmin;left:30vmin;bottom:-12vmin}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+
+.header{ text-align:center; margin:18px 0 }
+.title{ font-weight:900; font-size:clamp(28px,6.5vw,44px); background:linear-gradient(90deg,var(--brandA),var(--brandB)); -webkit-background-clip:text; background-clip:text; color:transparent}
+.sub{ color:var(--muted); max-width:760px; margin:6px auto 0; font-size:15px }
+
+.statusbar{ margin:18px auto; width:min(960px,100%); border-radius:18px; padding:12px; background:var(--glass); border:1px solid var(--border); box-shadow:0 14px 60px rgba(16,24,40,.12); backdrop-filter: blur(14px) saturate(140%) }
+.pill{ display:inline-flex; gap:10px; padding:10px 14px; border-radius:999px; background:rgba(255,255,255,.5); font-weight:700 }
+.subnote{ margin-top:6px; color:var(--muted); display:flex; gap:8px; align-items:center; justify-content:center; font-size:13px }
+
+.visit-wrap{ display:flex; justify-content:center; margin:12px 0 }
+.visit{ text-decoration:none; width:min(960px,100%); display:flex; justify-content:center; align-items:center; padding:14px 18px; border-radius:18px; font-weight:800; background:linear-gradient(90deg,var(--brandA),var(--brandB)); color:#fff; box-shadow:0 12px 28px rgba(124,140,255,.36) }
+
+.grid{ display:grid; gap:18px; grid-template-columns:1fr; }
+@media(min-width:860px){ .grid{ grid-template-columns:repeat(3,1fr) } }
+.card{ background: rgba(255,255,255,.40); border:1px solid var(--border); border-radius:18px; padding:0; overflow:hidden; box-shadow:0 14px 60px rgba(16,24,40,.08); backdrop-filter: blur(14px); }
+.card-head{ display:flex; justify-content:space-between; align-items:center; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,.35)) }
+.card-title{ font-weight:800; display:flex; gap:8px; align-items:center }
+.unlock{ background:linear-gradient(90deg,var(--brandA),var(--brandB)); color:#fff; border:0; padding:9px 12px; border-radius:12px; font-weight:800; cursor:pointer }
+
+.pw{ display:none; padding:12px; border-top:1px solid rgba(0,0,0,.03) }
+.input{ flex:1; padding:0 12px; height:42px; border-radius:12px; border:1.5px solid rgba(0,0,0,.06) }
+.ok{ background:linear-gradient(90deg,#30D158,#0FB56A); color:#fff; border:0; padding:9px 12px; border-radius:12px; cursor:pointer }
+.msg{ min-height:20px; font-size:13px; margin-top:8px }
+
+.content{ max-height:0; overflow:hidden; transition:max-height .45s ease, padding .45s ease }
+.content-inner{ padding:12px; color:#374151 }
+
+.footer{ text-align:center; color:var(--muted); margin-top:22px }
+
+/* modal & gate */
+.overlay{ position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(10,10,10,.35); backdrop-filter:blur(12px) }
+.modal{ width:min(860px,96vw); border-radius:28px; background:rgba(255,255,255,.36); border:1px solid var(--border); box-shadow:0 24px 90px rgba(16,24,40,.30); padding:20px; backdrop-filter:blur(24px) }
+.md-title{ text-align:center; font-size:clamp(22px,5.6vw,32px); font-weight:900; margin:0 0 12px }
+.sect h4{ margin:.2em 0 .4em; font-size:18px; color:#5C7CFF; font-weight:900 }
+.sect p{ margin:.2em 0; color:#4b5563; line-height:1.9 }
+
+.md-actions{ display:flex; justify-content:center; padding-top:6px }
+.md-okay{ border:0; padding:14px 20px; border-radius:28px; font-weight:900; font-size:16px; background:linear-gradient(90deg,var(--brandA),var(--brandB)); color:#fff; cursor:pointer }
+.md-okay[disabled]{ opacity:.48; cursor:not-allowed; filter:grayscale(.05) }
+
+/* gate */
+.gate{ position:fixed; inset:0; z-index:25; display:flex; align-items:center; justify-content:center; padding:20px; gap:20px; background:linear-gradient(135deg,#E6ECFF,#FFE6F6) }
+.gate-card{ width:min(720px,94vw); border-radius:26px; padding:22px; text-align:center; background:rgba(255,255,255,.62); border:1px solid var(--border); box-shadow:0 24px 80px rgba(16,24,40,.12) }
+.gate h2{ margin:6px 0 10px; font-size:clamp(22px,6vw,34px); font-weight:900; background:linear-gradient(90deg,var(--brandA),var(--brandB)); -webkit-background-clip:text; background-clip:text; color:transparent }
+
+/* =========================
+   新增：顶部信息条（2s）
+   ========================= */
+.info-bar{
+  position:fixed; left:0; right:0; top:0; z-index:60;
+  transform: translateY(-120%);
+  display:flex; align-items:center; justify-content:center;
+  padding:12px 16px;
+  background:linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.78));
+  color:#0b1320; font-weight:700; box-shadow:0 8px 22px rgba(16,24,40,.16);
+  backdrop-filter: blur(14px);
+  transition: transform .33s cubic-bezier(.2,.9,.2,1);
+}
+.info-bar.visible{ transform: translateY(0); }
+.info-bar small{ color:#4b5563; font-weight:600; margin-left:.5em }
+
+/* =========================
+   新增：微型播放器（右下角）
+   ========================= */
+.mini-player{
+  position:fixed; right:14px; bottom:14px; z-index:40;
+  width:260px; border-radius:14px; padding:10px 12px;
+  display:flex; gap:10px; align-items:center;
+  background:rgba(255,255,255,.28); border:1px solid var(--border);
+  box-shadow:0 16px 46px rgba(16,24,40,.16); backdrop-filter: blur(10px) saturate(140%);
+}
+.mini-cover{ width:44px; height:44px; border-radius:8px; flex:0 0 44px; overflow:hidden; background:#eee }
+.mini-cover img{ width:100%; height:100%; object-fit:cover }
+.mini-meta{ flex:1; min-width:0 }
+.mini-title{ font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.mini-artist{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px }
+.mini-ctrl{ display:flex; gap:8px; align-items:center; margin-top:6px }
+.mini-btn{ width:36px; height:36px; border-radius:10px; border:0; background:rgba(255,255,255,.92); font-weight:800; cursor:pointer }
+.mini-progress{ width:100%; height:6px; border-radius:6px; background:rgba(0,0,0,.06); margin-top:8px; overflow:hidden }
+.mini-progress i{ display:block; width:0%; height:100%; background:linear-gradient(90deg, var(--brandA), var(--brandB)); }
+
+/* =========================
+   新增：主界面后的扩展内容
+   ========================= */
+.section-title{
+  margin: 6px 0 10px;
+  font-size: clamp(18px,4.2vw,22px);
+  font-weight: 900;
+  background: linear-gradient(90deg,var(--brandA),var(--brandB));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.more{ margin-top: 8px; }
+.feature-list{ display:grid; grid-template-columns: 1fr; gap: 12px; }
+.feature{ display:flex; gap:10px; align-items:flex-start; background:rgba(255,255,255,.5); padding:10px 12px; border-radius:12px; border:1px solid var(--border) }
+.feature i{ width:22px; height:22px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--brandA),var(--brandB)); color:#fff; font-style:normal; font-weight:900 }
+.feature b{ display:block; }
+.feature small{ color:#6b7280; display:block; margin-top:2px }
+
+.faq details{ border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.55); padding:12px 14px }
+.faq details+details{ margin-top:10px }
+.faq summary{ cursor:pointer; font-weight:800; list-style:none; }
+.faq summary::-webkit-details-marker{ display:none }
+.faq-content{ color:#374151; line-height:1.8; margin-top:8px }
+
+.timeline{ position:relative; padding-left:18px }
+.timeline::before{ content:""; position:absolute; left:8px; top:0; bottom:0; width:2px; background:linear-gradient(180deg,var(--brandA),var(--brandB)); border-radius:2px }
+.t-item{ position:relative; padding:8px 0 8px 10px }
+.t-item::before{ content:""; position:absolute; left:-2px; top:14px; width:10px; height:10px; border-radius:50%; background:linear-gradient(135deg,var(--brandA),var(--brandB)); box-shadow:0 0 0 6px rgba(124,140,255,.18) }
+.t-item b{ display:block; font-weight:900 }
+.t-item small{ color:#6b7280 }
+
+@media (min-width:860px){
+  .feature-list{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width:560px){
+  .mini-player{ right:10px; left:10px; width:auto }
+}
+</style>
+</head>
+<body>
+<!-- 背景光斑（保留） -->
+<div class="blobs" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<!-- Modal（保留） -->
+<div class="overlay" id="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="md-title">
+    <h1 id="md-title" class="md-title">欢迎提示</h1>
+    <section class="sect">
+      <h4>重要通知</h4>
+      <p>欢迎访问演示页面。为了提供更好的体验，请阅读提示后继续。</p>
+    </section>
+    <section class="sect">
+      <h4>使用说明</h4>
+      <p>倒计时完成后点击「我明白了」，进入预览页，再点击“进入主页面”。</p>
+    </section>
+    <div class="md-actions">
+      <button id="md-continue" class="md-okay" disabled>我明白了 (5)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gate（保留） -->
+<section class="gate" id="gate" hidden>
+  <div class="gate-card">
+    <h2>预览界面 · 二次确认</h2>
+    <p>点击下方按钮进入主页面。</p>
+    <div style="margin-top:14px">
+      <button id="enter-main" style="background:linear-gradient(90deg,var(--brandA),var(--brandB)); color:#fff; border:0; padding:12px 16px; border-radius:14px; font-weight:800; box-shadow:0 10px 24px rgba(124,140,255,.36)">进入主页面</button>
+    </div>
+  </div>
+</section>
+
+<!-- 顶部信息条（新增：进入后提醒 2 秒） -->
+<div id="info-bar" class="info-bar" aria-live="polite">请点击右下角播放按钮 <span aria-hidden="true">▶</span> 手动播放音乐 <small>（2 秒后自动收起）</small></div>
+
+<!-- 主体（保留 + 扩展） -->
+<main class="wrap" id="app" aria-hidden="true">
+  <header class="header">
+    <h1 class="title">毛玻璃 · 页面示例</h1>
+    <p class="sub">保持原有设计与内容不变；新增小型音乐播放器（手动播放），以及主界面后的扩展内容。</p>
+  </header>
+
+  <section class="statusbar" aria-live="polite">
+    <div style="display:flex;justify-content:center">
+      <div class="pill"><span style="color:#4b5563">已持续</span>&nbsp;<b id="elapsed">00:00:00</b></div>
+    </div>
+    <div class="subnote">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 21l3.75-1 10.9-10.9a2.12 2.12 0 10-3-3L3.75 17l-0.75 4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M13 5l6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <div id="note-text">这是保留的原页面信息区</div>
+    </div>
+  </section>
+
+  <div class="visit-wrap"><a class="visit" href="https://www.jjjie.app" target="_blank" rel="noopener">访问主站</a></div>
+
+  <!-- 原三卡 -->
+  <section class="grid">
+    <article class="card"><div class="card-head"><div class="card-title">第一部分 · 灵感设计</div><button class="unlock">解锁</button></div><div class="pw"><div style="display:flex;gap:8px"><input class="input" placeholder="示例密码：idea2025"><button class="ok">确认</button></div><div class="msg"></div></div><div class="content"><div class="content-inner"><h3>设计基因</h3><p>示例内容。</p></div></div></article>
+    <article class="card"><div class="card-head"><div class="card-title">第二部分 · 色彩系统</div><button class="unlock">解锁</button></div><div class="pw"><div style="display:flex;gap:8px"><input class="input" placeholder="示例密码：tone2025"><button class="ok">确认</button></div><div class="msg"></div></div><div class="content"><div class="content-inner"><h3>渐变与层次</h3><p>示例内容。</p></div></div></article>
+    <article class="card"><div class="card-head"><div class="card-title">第三部分 · 交互细节</div><button class="unlock">解锁</button></div><div class="pw"><div style="display:flex;gap:8px"><input class="input" placeholder="示例密码：flow2025"><button class="ok">确认</button></div><div class="msg"></div></div><div class="content"><div class="content-inner"><h3>动效与可达性</h3><p>示例内容。</p></div></div></article>
+  </section>
+
+  <!-- ===== 主界面后的内容：扩展区块 ===== -->
+  <h2 class="section-title" style="margin-top:22px">（四）更多内容</h2>
+  <section class="grid more">
+    <!-- 项目进度（时间轴） -->
+    <article class="card">
+      <div class="card-head"><div class="card-title">项目进度 · 时间轴</div></div>
+      <div class="content" style="max-height:none"><div class="content-inner">
+        <div class="timeline">
+          <div class="t-item"><b>2025-11-10 · 完成手动播放融合</b><small>加入顶部信息条（2 秒）与微型播放器。</small></div>
+          <div class="t-item"><b>2025-11-12 · 代码结构优化</b><small>拆分 DOM 引用、状态与控制逻辑。</small></div>
+          <div class="t-item"><b>2025-11-15 · 补全主界面后内容</b><small>新增功能清单与 FAQ 模块。</small></div>
+        </div>
+      </div></div>
+    </article>
+
+    <!-- 功能清单 -->
+    <article class="card">
+      <div class="card-head"><div class="card-title">功能清单 · 快速了解</div></div>
+      <div class="content" style="max-height:none"><div class="content-inner">
+        <div class="feature-list">
+          <div class="feature"><i>①</i><div><b>手动播放策略</b><small>进入不自动播，点击 ▶ 后开始；结束不自动下一首。</small></div></div>
+          <div class="feature"><i>②</i><div><b>顶部信息条</b><small>进入后下滑提示 2 秒，提醒手动播放音乐。</small></div></div>
+          <div class="feature"><i>③</i><div><b>紧凑微型播放器</b><small>右下角 260px 宽，封面/歌名/进度条与播放按钮。</small></div></div>
+          <div class="feature"><i>④</i><div><b>原有设计全保留</b><small>弹窗、过渡页、三卡内容、样式变量与阴影体系。</small></div></div>
+        </div>
+      </div></div>
+    </article>
+
+    <!-- FAQ -->
+    <article class="card">
+      <div class="card-head"><div class="card-title">常见问题（FAQ）</div></div>
+      <div class="content" style="max-height:none"><div class="content-inner faq">
+        <details>
+          <summary>为什么进入后没有自动播放？</summary>
+          <div class="faq-content">为兼容浏览器自动播放策略，并尊重用户控制，本站采用手动播放。点击右下角 ▶ 即可开始。</div>
+        </details>
+        <details>
+          <summary>音乐播放失败怎么办？</summary>
+          <div class="faq-content">请检查音频路径是否正确（Network 是否 200），或尝试再次点击 ▶。如仍失败，请更换为同源托管的 .mp3 文件。</div>
+        </details>
+        <details>
+          <summary>如何更换歌曲与封面？</summary>
+          <div class="faq-content">在脚本的 <code>playlist</code> 数组中，替换 <code>src</code> 与 <code>cover</code> 路径即可。</div>
+        </details>
+      </div></div>
+    </article>
+  </section>
+
+  <footer class="footer">© 2025 Demo · 毛玻璃页面</footer>
+</main>
+
+<!-- 微型播放器（手动播放） -->
+<div class="mini-player" id="mini-player" aria-label="音乐播放器" aria-live="polite">
+  <div class="mini-cover"><img id="mini-cover" src="https://picsum.photos/seed/cover/200/200" alt="封面"></div>
+  <div class="mini-meta">
+    <div class="mini-title" id="mini-title">未播放</div>
+    <div class="mini-artist" id="mini-artist">—</div>
+    <div class="mini-ctrl">
+      <button class="mini-btn" id="mini-play" title="播放/暂停">▶</button>
+      <div style="flex:1"></div>
+    </div>
+    <div class="mini-progress" aria-hidden="true"><i id="mini-bar"></i></div>
+  </div>
+</div>
+
+<!-- 隐藏音频元素（不自动播放） -->
+<audio id="audio" preload="auto"></audio>
+
+<script>
+/* ===== 弹窗倒计时（保留） ===== */
+const mdBtn = document.getElementById('md-continue');
+let cdLeft = 5;
+mdBtn.disabled = true;
+mdBtn.textContent = `我明白了 (${cdLeft})`;
+const cdTimer = setInterval(()=>{
+  cdLeft--;
+  if(cdLeft>0){ mdBtn.textContent = `我明白了 (${cdLeft})`; }
+  else{ clearInterval(cdTimer); mdBtn.disabled = false; mdBtn.textContent = '我明白了'; }
+}, 1000);
+
+/* ===== 进入流程：不自动播放 ===== */
+const modal = document.getElementById('modal');
+const gate  = document.getElementById('gate');
+const app   = document.getElementById('app');
+const infoBar = document.getElementById('info-bar');
+
+mdBtn.addEventListener('click', ()=>{
+  modal.style.transition = 'transform .42s ease, opacity .42s ease';
+  modal.style.transform = 'translateY(-24px) scale(.98)';
+  modal.style.opacity = '0';
+  setTimeout(()=>{ modal.remove(); gate.removeAttribute('hidden'); }, 420);
+});
+
+document.getElementById('enter-main').addEventListener('click', ()=>{
+  gate.setAttribute('hidden','');
+  app.setAttribute('aria-hidden','false');
+
+  // 顶部提示条（2 秒）
+  infoBar.classList.add('visible');
+  setTimeout(()=> infoBar.classList.remove('visible'), 2000);
+
+  // 初始化曲目但不播放
+  loadTrack(0);
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* ===== 正计时（保留） ===== */
+(function(){
+  const start = new Date("2020-01-01T00:00:00");
+  const el = document.getElementById('elapsed');
+  function pad(n){ return n.toString().padStart(2,'0'); }
+  function tick(){
+    const now = new Date();
+    let diff = Math.max(0, now - start);
+    const d = Math.floor(diff/86400000); diff -= d*86400000;
+    const h = Math.floor(diff/36e5); diff -= h*36e5;
+    const m = Math.floor(diff/6e4); diff -= m*6e4;
+    const s = Math.floor(diff/1e3);
+    el.textContent = (d>0? d+'天 ' : '') + `${pad(h)}:${pad(m)}:${pad(s)}`;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ===== 音乐（仅手动播放） ===== */
+const playlist = [
+  { title: "City Lights", artist: "Artificial.Music", src: "assets/music/song1.mp3", cover: "assets/music/cover1.jpg" },
+  { title: "Memories",    artist: "LiQWYD",           src: "assets/music/song2.mp3", cover: "assets/music/cover2.jpg" }
+];
+const audioEl   = document.getElementById('audio');
+const pCover    = document.getElementById('mini-cover');
+const pTitle    = document.getElementById('mini-title');
+const pArtist   = document.getElementById('mini-artist');
+const pPlay     = document.getElementById('mini-play');
+const pBar      = document.getElementById('mini-bar');
+
+let cur = 0;
+let playing = false;
+
+function loadTrack(i){
+  const t = playlist[i]; if(!t) return;
+  audioEl.src = t.src;
+  pCover.src  = t.cover || '';
+  pTitle.textContent  = t.title || '未知曲目';
+  pArtist.textContent = t.artist || '未知歌手';
+  pBar.style.width = '0%';
+  playing = false;
+  pPlay.textContent = '▶';
+}
+
+pPlay.addEventListener('click', async ()=>{
+  if(!playlist.length) return;
+  if(!audioEl.src) loadTrack(cur);
+
+  if(!playing){
+    try{ await audioEl.play(); playing = true; pPlay.textContent = '▮▮'; }
+    catch(e){ console.warn('播放失败：', e); playing = false; pPlay.textContent = '▶'; }
+  }else{
+    audioEl.pause(); playing = false; pPlay.textContent = '▶';
+  }
+});
+
+audioEl.addEventListener('timeupdate', ()=>{
+  if(audioEl.duration && !isNaN(audioEl.duration)){
+    const pct = (audioEl.currentTime / audioEl.duration) * 100;
+    pBar.style.width = pct + '%';
+  }
+});
+audioEl.addEventListener('ended', ()=>{
+  playing = false; pPlay.textContent = '▶'; pBar.style.width = '0%';
+});
+
+/* ===== 卡片解锁（保留） ===== */
+(function(){
+  const PASSWORDS = { "card-1":"idea2025","card-2":"tone2025","card-3":"flow2025" };
+  const cards = document.querySelectorAll('.card');
+  function collapseAll(except){
+    cards.forEach(c=>{ if(c!==except){ const pw = c.querySelector('.pw'); if(pw) pw.style.display='none'; const content = c.querySelector('.content'); if(content){ content.style.maxHeight = 0; } }});
+  }
+  cards.forEach((card,i)=>{
+    const unlock = card.querySelector('.unlock');
+    const pw = card.querySelector('.pw');
+    const input = card.querySelector('.input');
+    const ok = card.querySelector('.ok');
+    const msg = card.querySelector('.msg');
+    if(!unlock) return; // 扩展卡片无 unlock
+    unlock.addEventListener('click', ()=>{
+      const show = pw.style.display==='block';
+      collapseAll(card);
+      pw.style.display = show? 'none':'block';
+      if(!show && input) setTimeout(()=>input.focus(),50);
+    });
+    if(!ok) return;
+    ok.addEventListener('click', ()=>{
+      const val = (input.value||'').trim();
+      if(!val){ msg.textContent='请输入密码'; return; }
+      const pass = (i===0 && val==='idea2025') || (i===1 && val==='tone2025') || (i===2 && val==='flow2025');
+      if(pass){
+        msg.textContent='密码正确'; msg.style.color='#0FB56A';
+        const content = card.querySelector('.content');
+        if(content){ content.style.maxHeight = card.querySelector('.content-inner').scrollHeight + 'px'; }
+        input.value=''; setTimeout(()=>msg.textContent='',1200);
+      }else{ msg.textContent='密码错误'; input.value=''; input.focus(); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
