@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>真挚的来信</title>
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!--
+      改动要点（便于后续维护）：
+      1) 统一样式变量与节奏变量（--dur/--ease/--t）。
+      2) 删除所有内联样式，抽为 .btn/.btn--primary 等通用类。
+      3) 语义化与可访问性：aria-*、role、可聚焦控件、prefers-reduced-motion 兼容。
+      4) 卡片密码逻辑通过 data-password 实现，避免硬编码映射；只操作类名与少量 style。
+      5) 结构分区清晰：基础/布局/组件/动画；注释指引改哪里。
+    -->
+    <style>
+      /* ========== 基础与设计令牌 (Design Tokens) ========== */
+      *,*::before,*::after { box-sizing: border-box }
+      :root {
+        /* 品牌色 & 语义色 */
+        --brandA: #7C8CFF;   /* 蓝紫 */
+        --brandB: #FF83C6;   /* 粉紫 */
+        --accent: #34C759;   /* iOS 绿 */
+        --ink:    #111827;   /* 主文本 */
+        --muted:  #6b7280;   /* 次级文本 */
+
+        /* 玻璃质感 */
+        --glass-bg:  rgba(255,255,255,.18);
+        --card-bg:   rgba(255,255,255,.40);
+        --border:    rgba(255,255,255,.55);
+        --shadow:    0 14px 60px rgba(16,24,40,.22);
+
+        /* 圆角与尺寸 */
+        --radius:   22px;
+        --radius-lg:32px;
+
+        /* 动效曲线/时长（统一用 --t） */
+        --dur:  .28s;
+        --ease: cubic-bezier(.22,.61,.36,1);
+        --t:    var(--dur) var(--ease);
+
+        /* 组件色彩 */
+        --blue: #5C7CFF;
+      }
+
+      html,body { height: 100% }
+      html,body {
+        margin: 0;
+        -webkit-text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
+        color: var(--ink);
+        font-family: -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Segoe UI,Roboto,Arial,sans-serif;
+        background:
+          radial-gradient(1200px 800px at 20% -10%, #e8ecff 0%, transparent 55%),
+          radial-gradient(1200px 900px at 120% 20%, #ffe7f6 0%, transparent 60%),
+          linear-gradient(135deg, #E0E9FF 0%, #FDE2FF 100%);
+      }
+
+      body { min-height: 100dvh; display: flex; align-items: stretch; justify-content: center }
+      .wrap { width: min(1080px,96vw); padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)) }
+
+      /* ========== 工具类 ========== */
+      .sr-only { position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+      .center { display:flex; justify-content:center; align-items:center }
+
+      /* ========== 背景柔性光斑（屏幕保护式） ========== */
+      .blobs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; filter: blur(22px) saturate(130%) }
+      .blob { position:absolute; border-radius:999px; background:conic-gradient(from 180deg, rgba(124,140,255,.75), rgba(255,131,198,.75)); mix-blend-mode:screen; opacity:.55; transform: translateZ(0); animation: floatY 18s ease-in-out infinite }
+      .blob.b1 { width:42vmin; height:42vmin; left:-6vmin; top:6vmin; animation-delay:0s }
+      .blob.b2 { width:56vmin; height:56vmin; right:-10vmin; top:20vmin; animation-delay:3s }
+      .blob.b3 { width:48vmin; height:48vmin; left:30vmin; bottom:-12vmin; animation-delay:6s }
+      @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+
+      /* ========== 头部与说明 ========== */
+      header.hero { position:relative; z-index:1; text-align:center; margin:8px 0 18px }
+      .title { margin:0 0 10px; font-weight:900; line-height:1.12; font-size:clamp(28px,6.5vw,48px); background:linear-gradient(90deg,var(--brandA),var(--brandB)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent }
+      .sub { margin:0 auto; color:var(--muted); max-width:760px; line-height:1.7; font-size:clamp(14px,2.6vw,16px) }
+
+      /* ========== 通用按钮 ========== */
+      .btn { appearance:none; border:1px solid transparent; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; transition: transform var(--t), filter var(--t), box-shadow var(--t) }
+      .btn:active { transform: translateY(0) scale(.98) }
+      .btn--primary {
+        color:#fff; background:linear-gradient(90deg,var(--brandA),var(--brandB));
+        box-shadow:0 10px 24px rgba(124,140,255,.36);
+      }
+
+      /* ========== 状态条（正计时 + 灰色小字） ========== */
+      .statusbar { position:relative; z-index:1; margin:16px auto 12px; width:min(960px,100%); border-radius:18px; padding:12px 14px; background:var(--glass-bg); border:1px solid var(--border); box-shadow:var(--shadow); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%) }
+      .status-row { display:flex; justify-content:center; align-items:center }
+      .pill { display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; white-space:nowrap; background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-weight:700; font-variant-numeric:tabular-nums }
+      .pill .label { color:#4b5563 }
+      .pill b { background:linear-gradient(90deg,var(--brandA),var(--brandB)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent }
+      .subnote { margin-top:6px; display:flex; gap:8px; align-items:center; justify-content:center; color:#6b7280; font-size:13px }
+      .subnote .pen { width:14px; height:14px; display:inline-block }
+      .subnote svg { width:14px; height:14px; opacity:.9 }
+
+      /* ========== 访问主站（独立长条按钮） ========== */
+      .visit-wrap { position:relative; z-index:1; display:flex; justify-content:center; margin:10px 0 18px }
+      .visit { text-decoration:none; width:min(960px,100%); display:flex; justify-content:center; align-items:center; gap:10px; padding:14px 18px; border-radius:18px; font-weight:800; letter-spacing:.2px; background:linear-gradient(90deg,var(--brandA),var(--brandB)); color:#fff; box-shadow:0 12px 28px rgba(124,140,255,.36); transition: transform var(--t), filter var(--t) }
+      .visit::before { content:"↗"; font-weight:900 }
+      .visit:hover { transform: translateY(-1px) }
+
+      /* ========== 三卡布局 ========== */
+      .grid { position:relative; z-index:1; display:grid; gap:18px; grid-template-columns:1fr }
+      @media (min-width:860px){ .grid{ grid-template-columns:repeat(3,1fr) } }
+
+      .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow:hidden; transition: transform var(--t), box-shadow var(--t); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%) }
+      .card:hover { transform: translateY(-2px) }
+      .card-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 12px; background:linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,.35)) }
+      .card-title { font-weight:800; display:flex; align-items:center; gap:10px; font-size:15px }
+      .dot { width:12px; height:12px; border-radius:50%; background:linear-gradient(135deg,var(--brandA),var(--brandB)); box-shadow:0 0 0 4px rgba(124,140,255,.15) }
+
+      .unlock { appearance:none; border:0; cursor:pointer; padding:9px 12px; border-radius:12px; font-weight:800; background:linear-gradient(90deg,var(--brandA),var(--brandB)); color:#fff; box-shadow:0 8px 18px rgba(124,140,255,.35); transition: transform var(--t) }
+      .unlock:hover { transform: translateY(-1px) }
+
+      .pw { display:none; padding:12px 12px; background:linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.25)); border-top:1px solid var(--border) }
+      .card.show-pw .pw { display:block }
+      .row { display:flex; gap:10px; align-items:center }
+      .input { flex:1; height:42px; padding:0 12px; border-radius:12px; border:1.5px solid rgba(0,0,0,.06); background:rgba(255,255,255,.9); outline:none; transition: box-shadow var(--t), border var(--t) }
+      .input:focus { border-color:transparent; box-shadow:0 0 0 6px rgba(124,140,255,.35) }
+      .ok { height:42px; padding:0 14px; border:0; border-radius:12px; background:linear-gradient(90deg,#30D158,#0FB56A); color:#fff; font-weight:800; cursor:pointer; box-shadow:0 6px 16px rgba(52,199,89,.3); transition: transform var(--t) }
+      .ok:hover { transform: translateY(-1px) }
+
+      .msg { min-height:20px; padding:6px 2px 10px; font-size:13px; color:#ff3b30; font-weight:700 }
+      .msg.success { color: var(--accent) }
+
+      .content { max-height:0; overflow:hidden; transition:max-height .45s var(--ease), padding .45s var(--ease); padding:0 12px }
+      .content-inner { padding:12px 0 16px; color:#374151; line-height:1.75; font-size:15px }
+      .content h3 { margin:6px 0 10px; font-size:17px; background:linear-gradient(90deg,var(--brandA),var(--brandB)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent }
+
+      @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+      .shake { animation: shake .42s }
+
+      footer.foot { position:relative; z-index:1; text-align:center; color:#6b7280; font-size:13px; margin-top:22px }
+
+      /* ========== 弹窗（毛玻璃 + 动画） ========== */
+      .overlay { position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center; padding:max(24px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom)); background:rgba(10,10,10,.35); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); transition:opacity var(--t), visibility var(--t) }
+      .overlay[hidden] { opacity:0; visibility:hidden }
+      .modal {
+        width:min(860px,96vw); border-radius:28px; position:relative; overflow:hidden;
+        background:rgba(255,255,255,.36); border:1px solid rgba(255,255,255,.55);
+        box-shadow:0 24px 90px rgba(16,24,40,.30); backdrop-filter:blur(24px) saturate(150%);
+        -webkit-backdrop-filter:blur(24px) saturate(150%); transform:translateY(0); opacity:1;
+      }
+      .modal::before {
+        content:""; position:absolute; inset:0; pointer-events:none;
+        background: radial-gradient(600px 300px at 50% 35%, rgba(124,140,255,.18), transparent 60%), linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 60%);
+        mix-blend-mode:soft-light;
+      }
+      .md-shell { padding:20px 24px 18px }
+      .md-title { margin:0 0 12px; text-align:center; font-size: clamp(22px, 5.6vw, 34px); font-weight:900; color:#1f2937; text-shadow:0 1px 0 rgba(255,255,255,.35) }
+      .sect { margin:14px 0 12px }
+      .sect h4 { margin:.2em 0 .4em; font-size: clamp(16px, 4.2vw, 20px); font-weight:900; color:var(--blue) }
+      .sect p { margin:.2em 0; color:#4b5563; line-height:1.9; font-size: clamp(14px, 3.6vw, 16px) }
+      .md-actions { display:flex; justify-content:center; padding:16px 24px 24px }
+      .md-okay { composes: btn btn--primary; /* 仅做语义提示，不影响渲染 */ }
+      .md-okay { appearance:none; border:0; cursor:pointer; padding:16px 22px; border-radius:28px; font-weight:900; font-size: clamp(16px, 4.6vw, 18px); background:linear-gradient(90deg,var(--brandA),var(--brandB)); color:#fff; box-shadow:0 16px 40px rgba(124,140,255,.35); transition:transform var(--t), filter var(--t) }
+      .md-okay:active { transform: scale(.98) }
+      .modal.dismiss { animation: modalSlideUp .42s var(--ease) both }
+      @keyframes modalSlideUp { to { opacity:0; transform:translateY(-24px) scale(.98) } }
+
+      /* ========== Gate 过渡页（信封展开动画消失） ========== */
+      .gate { position:fixed; inset:0; z-index:20; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); gap:20px; background:linear-gradient(135deg,#E6ECFF,#FFE6F6) }
+      .gate-card { width:min(720px,94vw); border-radius:26px; padding:22px 20px; text-align:center; background:rgba(255,255,255,.62); border:1px solid var(--border); box-shadow:var(--shadow); backdrop-filter:blur(16px) saturate(180%); -webkit-backdrop-filter:blur(16px) saturate(180%) }
+      .gate h2 { margin:6px 0 10px; font-size:clamp(22px,6vw,34px); background:linear-gradient(90deg,var(--brandA),var(--brandB)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:900 }
+      .gate p { margin:0; color:#4b5563 }
+      .gate .enter { margin-top:14px }
+      .gate[hidden] { display:none }
+      .gate.exit { animation: envelopeOpen .6s cubic-bezier(.19,1,.22,1) both }
+      @keyframes envelopeOpen {
+        0%{ clip-path: polygon(0 50%,100% 50%,100% 50%,0 50%); opacity:1 }
+        60%{ clip-path: polygon(0 0,100% 0,100% 100%,0 100%); opacity:1 }
+        100%{ clip-path: polygon(0 0,100% 0,100% 100%,0 100%); opacity:0 }
+      }
+
+      /* 初始隐藏主内容 */
+      main[aria-hidden="true"] { visibility:hidden; height:0; overflow:hidden }
+
+      /* ========== 降低动效偏好 ========== */
+      @media (prefers-reduced-motion: reduce) {
+        * { animation-duration: 0.001s !important; transition-duration: 0.001s !important }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 背景柔光斑 -->
+    <div class="blobs" aria-hidden="true">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+    </div>
+
+    <!-- Step 1: 参考图风格弹窗（毛玻璃） -->
+    <div class="overlay" id="modal">
+      <div class="modal" id="modal-card" role="dialog" aria-modal="true" aria-labelledby="md-title">
+        <div class="md-shell">
+          <h1 id="md-title" class="md-title">网站声明</h1>
+          <section class="sect">
+            <h4>建站心得</h4>
+            <p>此站现为1.0版本，于2025.12.3推出，是在github平台上托管的静态网页，此站在11月15日规划搭建，是在用AI生成网站基本结构的基础上自行完整了操作逻辑。</p>
+          </section>
+          <section class="sect">
+            <h4>设计声明</h4>
+            <p>在编写过程中由于实体设备欠缺，调试多有不全，不能避免安卓与苹果的页面适配问题，如有显示欠缺或操作异常等情况，请及时联系我。</p>
+          </section>
+          <div class="md-actions">
+            <button id="md-continue" class="md-okay" type="button">(๑‾ ꇴ ‾๑)好哒</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: 过渡页 Gate -->
+    <section class="gate" id="gate" hidden>
+      <div class="gate-card">
+        <h2>这是一封真挚的来信</h2>
+        <p>“此间藏心语，聊表寸心”</p>
+        <p>谨以此站献给宝贵的你们！</p>
+        <div class="enter">
+          <button class="btn btn--primary" id="enter-main" type="button">打开信封🥰</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: 主页面 -->
+    <main class="wrap" id="app" aria-hidden="true">
+      <header class="hero">
+        <h1 class="title">真挚的来信</h1>
+        <p class="sub">#长廊尽头，夕阳洒下一片金色的光晕，仿佛为平凡的 日常镀上了一层浪漫的滤镜。昏黄的灯光与余晖交织，光影斑驳间，时间仿佛静止。生活不只有远方的风景，也有近处的温柔。计夕阳也很美，美在它悄悄点亮了归途，也温暖了心底的角落#</p>
+        <p class="sub">由于一时的灵感，就决定搭建一个网站~</p>
+        <p class="sub">这几段小作文开始写于11月14日车上，历经两天构思，我也知道这恐怕是唯一有机会去表达的时候，但开始写的时候，盯着键盘，也不知自己想表达什么，写了几句 删掉，接着写了几句 又删掉，这几段话我磨蹭了一个星期又一个星期。</p>
+        <p class="sub">“做三四月的事，在八九月自有答案。”</p>
+        <p class="sub">“天上的月亮和地上的六便士加在一起才为人生。”</p>
+        <p class="sub">------允许我用拙劣的文笔表达我粗浅的情感。</p>
+      </header>
+
+      <section class="statusbar" aria-live="polite">
+        <div class="status-row">
+          <!-- 仅需修改 data-start 即可切换起始时间 -->
+          <div class="pill"><span class="label">我们离开已经</span> <b id="elapsed" data-start="2025-12-03T00:00:00">00:00:00</b></div>
+        </div>
+        <div class="subnote">
+          <span class="pen" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21l3.75-1 10.9-10.9a2.12 2.12 0 10-3-3L3.75 17l-0.75 4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 5l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          <span id="note-text">即从2025年12月3日起计</span>
+        </div>
+      </section>
+
+      <!-- 独立长条主站按钮 -->
+      <div class="visit-wrap">
+        <a class="visit" href="https://philojie.github.io/jjjieblog" target="_blank" rel="noopener">访问我的网站</a>
+      </div>
+
+      <section class="grid" id="cards">
+        <!-- 卡片 1：通过 data-password 配置密码，无需改 JS -->
+        <article class="card" data-id="card-1" data-password="0">
+          <div class="card-head">
+            <div class="card-title"><span class="dot" aria-hidden="true"></span>To邢警心</div>
+            <button class="unlock" type="button" aria-expanded="false">开封！🔑</button>
+          </div>
+          <div class="pw">
+            <div class="row">
+              <input class="input" type="password" placeholder="在此键入密码(*^▽^*)" inputmode="text" />
+              <button class="ok" type="button">确认</button>
+            </div>
+            <div class="msg" role="status" aria-live="polite"></div>
+          </div>
+          <div class="content"><div class="content-inner">
+            <h3>设计基因</h3>
+            <p>你明眸深邃，眼里有无可藏匿的星辰。</p>
+            <p>你明眸深邃，眼里有无可藏匿的星辰。</p>
+            <p>愿你在阳光里坦坦荡荡，在星光里落落大方，保持你的气质，那些遥远的人和看不见的风景，都终将在你生命中出现。</p>
+            <p>你明眸深邃，眼里有无可藏匿的星辰。</p>
+            <p>你明眸深邃，眼里有无可藏匿的星辰。</p>
+          </div></div>
+        </article>
+
+        <article class="card" data-id="card-2" data-password="00">
+          <div class="card-head">
+            <div class="card-title"><span class="dot" aria-hidden="true"></span>To肘凌菲</div>
+            <button class="unlock" type="button" aria-expanded="false">开封！🔑</button>
+          </div>
+          <div class="pw">
+            <div class="row">
+              <input class="input" type="password" placeholder="在此键入密码(*^▽^*)" />
+              <button class="ok" type="button">确认</button>
+            </div>
+            <div class="msg" role="status" aria-live="polite"></div>
+          </div>
+          <div class="content"><div class="content-inner">
+            <h3>渐变与层次</h3>
+            <p>愿你赤诚善良，活得坦荡，夜色难免凄凉，前行必有曙光。</p>
+            <p>愿你赤诚善良，活得坦荡，夜色难免凄凉，前行必有曙光。</p>
+            <p>愿你赤诚善良，活得坦荡，夜色难免凄凉，前行必有曙光。</p>
+            <p>愿你赤诚善良，活得坦荡，夜色难免凄凉，前行必有曙光。</p>
+          </div></div>
+        </article>
+
+        <article class="card" data-id="card-3" data-password="000">
+          <div class="card-head">
+            <div class="card-title"><span class="dot" aria-hidden="true"></span>To黏明鑫</div>
+            <button class="unlock" type="button" aria-expanded="false">开封！🔑</button>
+          </div>
+          <div class="pw">
+            <div class="row">
+              <input class="input" type="password" placeholder="在此键入密码(*^▽^*)" />
+              <button class="ok" type="button">确认</button>
+            </div>
+            <div class="msg" role="status" aria-live="polite"></div>
+          </div>
+          <div class="content"><div class="content-inner">
+            <h3>动效与可达性</h3>
+            <p>人间的美好，是三月的风，是六月的雨，九月的云和一二月的雪，人可以生如蚁，而美如神</p>
+            <p>人间的美好，是三月的风，是六月的雨，九月的云和一二月的雪，人可以生如蚁，而美如神</p>
+            <p>人间的美好，是三月的风，是六月的雨，九月的云和一二月的雪，人可以生如蚁，而美如神</p>
+            <p>人间的美好，是三月的风，是六月的雨，九月的云和一二月的雪，人可以生如蚁，而美如神</p>
+          </div></div>
+        </article>
+      </section>
+
+      <footer class="foot">© 2025 Latest · 真挚的来信，谨以此站献给最宝贵的你们❥(^_-)（iOS/Android/pc）</footer>
+    </main>
+
+    <script>
+      // ========== 小工具 ========== 
+      const $ = (s, c = document) => c.querySelector(s);
+      const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
+      const on = (el, ev, fn, opt) => el.addEventListener(ev, fn, opt);
+
+      // ========== Step 1/2 弹窗 -> Gate -> 主页面 ========== 
+      const overlay = $('#modal');
+      const modal   = $('#modal-card');
+      const gate    = $('#gate');
+      const app     = $('#app');
+
+      on($('#md-continue'), 'click', () => {
+        modal.classList.add('dismiss');
+        on(modal, 'animationend', () => {
+          overlay.setAttribute('hidden', '');
+          gate.removeAttribute('hidden');
+        }, { once: true });
+      });
+
+      on($('#enter-main'), 'click', () => {
+        gate.classList.add('exit');
+        on(gate, 'animationend', () => {
+          gate.setAttribute('hidden', '');
+          app.setAttribute('aria-hidden', 'false');
+          document.body.style.minHeight = '100dvh';
+          const target = $('.card[data-id="card-1"]');
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, { once: true });
+      });
+
+      // ========== 正计时（支持天数，起点可视化配置） ========== 
+      (function runTicker(){
+        const el = $('#elapsed');
+        const startStr = el?.dataset.start || '2025-01-01T00:00:00';
+        const start = new Date(startStr);
+        const pad = n => String(n).padStart(2, '0');
+        const tick = () => {
+          const now = new Date();
+          let diff = Math.max(0, now - start);
+          const d = Math.floor(diff / 86400000); diff -= d*86400000;
+          const h = Math.floor(diff / 36e5);     diff -= h*36e5;
+          const m = Math.floor(diff / 6e4);      diff -= m*6e4;
+          const s = Math.floor(diff / 1e3);
+          el.textContent = (d>0? d+"天 ":"") + `${pad(h)}:${pad(m)}:${pad(s)}`;
+        };
+        tick(); setInterval(tick, 1000);
+      })();
+
+      // ========== 卡片解锁逻辑（单开/折叠，类名驱动） ========== 
+      (function initCards(){
+        const cards = $$('.card');
+
+        function collapseOthers(current){
+          cards.forEach(card => {
+            if (card !== current){
+              card.classList.remove('show-pw');
+              const content = $('.content', card);
+              content.style.maxHeight = 0;
+              content.style.padding = '0 12px';
+              const msg = $('.msg', card); if(msg){ msg.textContent=''; msg.classList.remove('success'); }
+              const unlockBtn = $('.unlock', card); if (unlockBtn) unlockBtn.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+
+        function expandContent(card){
+          const c = $('.content', card);
+          const inner = $('.content-inner', card);
+          c.style.padding = '0 12px';
+          c.style.maxHeight = inner.scrollHeight + 'px';
+        }
+
+        function shake(el){
+          el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+        }
+
+        cards.forEach((card, idx) => {
+          const unlock = $('.unlock', card);
+          const pwBox  = $('.pw', card);
+          const input  = $('.input', card);
+          const okBtn  = $('.ok', card);
+          const msg    = $('.msg', card);
+          const expected = card.dataset.password || '';
+
+          // 供 a11y 使用的 ids/关联
+          const pwId = `${card.dataset.id || 'card'}-pw`;
+          pwBox.id = pwId;
+          unlock.setAttribute('aria-controls', pwId);
+
+          on(unlock, 'click', () => {
+            const willShow = !card.classList.contains('show-pw');
+            collapseOthers(card);
+            card.classList.toggle('show-pw', willShow);
+            unlock.setAttribute('aria-expanded', String(willShow));
+            if (willShow) setTimeout(() => input.focus(), 40);
+          });
+
+          function submit(){
+            const val = input.value.trim();
+            if (!val){ msg.textContent = '密码不能为空哦(╯▽╰)'; shake(input); return }
+            if (val === expected){
+              msg.textContent = '密码正确，正在展开…o(*^＠^*)o'; msg.classList.add('success');
+              expandContent(card); input.value='';
+              setTimeout(() => { msg.textContent=''; }, 1200);
+            } else {
+              msg.textContent = 'error！(ΩДΩ)密码好像不对哦，速速联系我！'; msg.classList.remove('success');
+              input.value=''; input.focus(); shake(input);
+            }
+          }
+
+          on(okBtn, 'click', submit);
+          on(input, 'keydown', e => { if (e.key === 'Enter') submit() });
+        });
+      })();
+    </script>
+  </body>
+</html>
