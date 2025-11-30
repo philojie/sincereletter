@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>发布测试页 · Rose Lab</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <style>
+    /* ========= 基础设置 ========= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-gradient-light: radial-gradient(circle at 0% 0%, #ffe9f4 0, rgba(255,233,244,0) 40%),
+                           radial-gradient(circle at 100% 0%, #e5f0ff 0, rgba(229,240,255,0) 45%),
+                           radial-gradient(circle at 50% 100%, #e4fff4 0, rgba(228,255,244,0) 55%),
+                           linear-gradient(135deg, #f3f6ff, #fdfbff);
+      --bg-gradient-dark: radial-gradient(circle at 0% 0%, #361b4b 0, rgba(54,27,75,0) 35%),
+                          radial-gradient(circle at 100% 0%, #103049 0, rgba(16,48,73,0) 45%),
+                          radial-gradient(circle at 50% 100%, #0c2c25 0, rgba(12,44,37,0) 55%),
+                          linear-gradient(135deg, #050816, #0b1020);
+      --glass-bg-light: rgba(255, 255, 255, 0.7);
+      --glass-bg-dark: rgba(15, 23, 42, 0.7);
+      --glass-border-light: rgba(255, 255, 255, 0.8);
+      --glass-border-dark: rgba(148, 163, 184, 0.5);
+      --accent-pink: #ff72b6;
+      --accent-rose: #ff4d8f;
+      --accent-blue: #4e9bff;
+      --accent-mint: #32e0b8;
+      --text-main-light: #0f172a;
+      --text-sub-light: #64748b;
+      --text-main-dark: #e5e7eb;
+      --text-sub-dark: #94a3b8;
+      --shadow-soft-light: 0 18px 45px rgba(15, 23, 42, 0.12);
+      --shadow-soft-dark: 0 18px 45px rgba(15, 23, 42, 0.7);
+      --radius-xl: 26px;
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --transition-fast: 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+      --transition-med: 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      min-height: 100vh;
+      background: var(--bg-gradient-light);
+      color: var(--text-main-light);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      padding: 18px;
+      overflow: hidden;
+      position: relative;
+      transition: background var(--transition-med), color var(--transition-med);
+    }
+
+    body[data-theme="dark"] {
+      background: var(--bg-gradient-dark);
+      color: var(--text-main-dark);
+    }
+
+    /* ========= 全局伪光晕 ========= */
+    .bg-orb {
+      position: fixed;
+      pointer-events: none;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-orb::before,
+    .bg-orb::after {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.65;
+      transition: opacity var(--transition-med), transform 4s ease-in-out;
+    }
+
+    .bg-orb::before {
+      background: radial-gradient(circle, #ff9fd3, rgba(255, 159, 211, 0));
+      top: -120px;
+      left: -60px;
+    }
+
+    .bg-orb::after {
+      background: radial-gradient(circle, #5fd5ff, rgba(95, 213, 255, 0));
+      bottom: -160px;
+      right: -100px;
+    }
+
+    body[data-theme="dark"] .bg-orb::before {
+      opacity: 0.4;
+      transform: translate3d(10px, 20px, 0);
+    }
+
+    body[data-theme="dark"] .bg-orb::after {
+      opacity: 0.5;
+      transform: translate3d(-20px, -20px, 0);
+    }
+
+    /* ========= 顶部栏 ========= */
+    .top-bar {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1180px, 100%);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .top-inner {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: auto;
+    }
+
+    .brand-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.3));
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+
+    body[data-theme="dark"] .brand-chip {
+      background: linear-gradient(120deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.4));
+      border-color: rgba(148, 163, 184, 0.4);
+      box-shadow: 0 16px 35px rgba(15, 23, 42, 0.75);
+    }
+
+    .brand-rose {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #ffe1ef 0, #ff3f86 55%, #7c1337 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .brand-rose::after {
+      content: "";
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      opacity: 0.6;
+    }
+
+    .brand-rose span {
+      font-size: 13px;
+      transform: translateY(-1px);
+    }
+
+    .brand-text-main {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-text-sub {
+      font-size: 11px;
+      opacity: 0.65;
+    }
+
+    .mode-toggle {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.12));
+      backdrop-filter: blur(18px);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px 5px 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: #0f172a;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+        border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+    }
+
+    body[data-theme="dark"] .mode-toggle {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.3));
+      color: #e5e7eb;
+      box-shadow: 0 14px 38px rgba(15, 23, 42, 0.9);
+      border-color: rgba(148, 163, 184, 0.55);
+    }
+
+    .mode-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+    }
+
+    .mode-toggle:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    }
+
+    .mode-icon-pill {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 0%, #fff7da, #f97316);
+      color: #facc15;
+      box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.7);
+      font-size: 14px;
+      transition: transform 0.5s ease, background 0.35s ease;
+    }
+
+    body[data-theme="dark"] .mode-icon-pill {
+      background: radial-gradient(circle at 30% 0%, #e0f2fe, #0f172a);
+      color: #e0f2fe;
+    }
+
+    .mode-label {
+      white-space: nowrap;
+    }
+
+    /* ========= 主布局 ========= */
+    .shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding-top: 80px;
+      padding-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      height: 100vh;
+      max-height: 760px;
+    }
+
+    .view {
+      position: absolute;
+      inset: 80px 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(16px) scale(0.98);
+      transition:
+        opacity var(--transition-med),
+        transform var(--transition-med);
+    }
+
+    .view.view--active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    /* ========= 主卡片 ========= */
+    .glass-card {
+      width: min(820px, 100%);
+      padding: 24px 26px 22px;
+      border-radius: var(--radius-xl);
+      background: var(--glass-bg-light);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-soft-light);
+      backdrop-filter: blur(24px) saturate(1.6);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      transform-origin: center;
+      animation: card-pop-in 0.6s cubic-bezier(0.19, 1, 0.22, 1) 0.2s both;
+    }
+
+    body[data-theme="dark"] .glass-card {
+      background: var(--glass-bg-dark);
+      border-color: var(--glass-border-dark);
+      box-shadow: var(--shadow-soft-dark);
+    }
+
+    .glass-card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.3),
+        rgba(255, 192, 203, 0.35),
+        rgba(125, 211, 252, 0.35),
+        rgba(196, 181, 253, 0.3)
+      );
+      opacity: 0.4;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+    }
+
+    .glass-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .hero-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hero-title-block h1 {
+      font-size: 26px;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    .hero-title-block .subtitle {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-sub-light);
+    }
+
+    body[data-theme="dark"] .hero-title-block .subtitle {
+      color: var(--text-sub-dark);
+    }
+
+    .badge-row {
+      display: inline-flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-sub-light);
+    }
+
+    body[data-theme="dark"] .pill-badge {
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text-sub-dark);
+      border-color: rgba(148, 163, 184, 0.5);
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent-pink), var(--accent-rose));
+      box-shadow: 0 0 8px rgba(248, 113, 113, 0.6);
+    }
+
+    .hero-minibadge {
+      align-self: flex-start;
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      background: radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 8px 26px rgba(148, 163, 184, 0.38);
+    }
+
+    body[data-theme="dark"] .hero-minibadge {
+      background: radial-gradient(circle at 0% 0%, rgba(51, 65, 85, 0.9), rgba(15, 23, 42, 0.9));
+      border-color: rgba(148, 163, 184, 0.6);
+    }
+
+    .hero-minibadge span {
+      font-size: 13px;
+      margin-left: 4px;
+    }
+
+    /* 倒计时区域 */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .hero-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .countdown-card {
+      position: relative;
+      padding: 16px 18px 14px;
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.25));
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 16px 38px rgba(148, 163, 184, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    body[data-theme="dark"] .countdown-card {
+      background: radial-gradient(circle at 0 0, rgba(30, 64, 175, 0.9), rgba(15, 23, 42, 0.9));
+      border-color: rgba(129, 140, 248, 0.65);
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.95);
+    }
+
+    .countdown-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-sub-light);
+    }
+
+    body[data-theme="dark"] .countdown-label-row {
+      color: var(--text-sub-dark);
+    }
+
+    .countdown-chip {
+      padding: 2px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      font-size: 11px;
+    }
+
+    .countdown-time {
+      font-variant-numeric: tabular-nums;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .countdown-subtext {
+      font-size: 11px;
+      opacity: 0.75;
+    }
+
+    .countdown-orbit {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      right: -40px;
+      top: -40px;
+      border-radius: 999px;
+      border: 1px dashed rgba(148, 163, 184, 0.45);
+      opacity: 0.8;
+      transform-origin: center;
+      animation: orbit-rotate 18s linear infinite;
+      pointer-events: none;
+    }
+
+    .countdown-orbit::before {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 0%, #fef9c3, #f97316);
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .secondary-card {
+      padding: 14px 16px;
+      border-radius: var(--radius-lg);
+      border: 1px dashed rgba(148, 163, 184, 0.4);
+      background: rgba(248, 250, 252, 0.6);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-sub-light);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    body[data-theme="dark"] .secondary-card {
+      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(148, 163, 184, 0.6);
+      color: var(--text-sub-dark);
+    }
+
+    .secondary-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .tiny-chip {
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    /* ========= 按钮区 ========= */
+    .actions-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 880px) {
+      .actions-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .actions-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .action-btn {
+      position: relative;
+      border-radius: 999px;
+      padding: 8px 13px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(248, 250, 252, 0.15));
+      box-shadow: 0 14px 28px rgba(148, 163, 184, 0.4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 9px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #0f172a;
+      outline: none;
+      cursor: pointer;
+      overflow: hidden;
+      transform: translateY(0);
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        color var(--transition-fast);
+    }
+
+    body[data-theme="dark"] .action-btn {
+      background: radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.35), rgba(15, 23, 42, 0.98));
+      color: #e5e7eb;
+      border-color: rgba(148, 163, 184, 0.7);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.95);
+    }
+
+    .action-btn span {
+      white-space: nowrap;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1.5px);
+      box-shadow: 0 18px 36px rgba(148, 163, 184, 0.55);
+      border-color: rgba(96, 165, 250, 0.9);
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 10px 20px rgba(148, 163, 184, 0.6);
+    }
+
+    .btn-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+      background: radial-gradient(circle at 30% 0, #ffffff, #fecaca);
+      box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.9);
+      transform-origin: center;
+      transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+                  box-shadow 0.3s ease;
+    }
+
+    .action-btn:hover .btn-icon {
+      transform: rotate(-8deg) scale(1.05);
+      box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.7), 0 0 18px rgba(248, 113, 133, 0.8);
+    }
+
+    .action-btn:active .btn-icon {
+      transform: scale(0.94);
+    }
+
+    .btn-icon.fireworks {
+      background: radial-gradient(circle at 30% 0, #e0f2fe, #4f46e5);
+    }
+
+    .btn-icon.later {
+      background: radial-gradient(circle at 30% 0, #dcfce7, #16a34a);
+    }
+
+    .btn-icon.lock {
+      background: radial-gradient(circle at 30% 0, #fee2e2, #b91c1c);
+    }
+
+    /* icon 文本对齐 */
+    .btn-text-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-text-sub {
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    /* ========= 页面一：维护 ========= */
+    .simple-card {
+      width: min(420px, 95%);
+      padding: 22px 22px 18px;
+      border-radius: var(--radius-xl);
+      background: var(--glass-bg-light);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow-soft-light);
+      position: relative;
+      overflow: hidden;
+    }
+
+    body[data-theme="dark"] .simple-card {
+      background: var(--glass-bg-dark);
+      border-color: var(--glass-border-dark);
+      box-shadow: var(--shadow-soft-dark);
+    }
+
+    .simple-card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: linear-gradient(145deg, rgba(252, 165, 165, 0.5), rgba(96, 165, 250, 0.4), rgba(45, 212, 191, 0.4));
+      opacity: 0.3;
+      mix-blend-mode: soft-light;
+    }
+
+    .simple-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .simple-icon-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 0, #fef3c7, #f97316);
+      color: #92400e;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+      margin-bottom: 4px;
+    }
+
+    .simple-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .simple-sub {
+      font-size: 13px;
+      color: var(--text-sub-light);
+      line-height: 1.7;
+    }
+
+    body[data-theme="dark"] .simple-sub {
+      color: var(--text-sub-dark);
+    }
+
+    .simple-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .simple-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .ghost-back-btn {
+      margin-top: 10px;
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(248, 250, 252, 0.7);
+      font-size: 12px;
+      cursor: pointer;
+      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    body[data-theme="dark"] .ghost-back-btn {
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+    }
+
+    .ghost-back-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(148, 163, 184, 0.4);
+    }
+
+    .ghost-back-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    /* ========= 页面二：密码 ========= */
+    .password-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .password-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .password-sub {
+      font-size: 13px;
+      color: var(--text-sub-light);
+    }
+
+    body[data-theme="dark"] .password-sub {
+      color: var(--text-sub-dark);
+    }
+
+    .password-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .input-shell {
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      background: rgba(248, 250, 252, 0.9);
+      display: flex;
+      align-items: center;
+    }
+
+    body[data-theme="dark"] .input-shell {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(148, 163, 184, 0.7);
+    }
+
+    .input-shell span {
+      padding-left: 10px;
+      padding-right: 6px;
+      font-size: 13px;
+      opacity: 0.75;
+    }
+
+    .password-input {
+      border: none;
+      outline: none;
+      flex: 1;
+      padding: 8px 10px 8px 4px;
+      background: transparent;
+      font-size: 13px;
+      color: inherit;
+    }
+
+    .password-input::placeholder {
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .submit-btn {
+      align-self: stretch;
+      border-radius: var(--radius-pill);
+      padding: 8px 14px;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      background: linear-gradient(135deg, #4f46e5, #ec4899);
+      color: #f9fafb;
+      box-shadow: 0 16px 33px rgba(59, 130, 246, 0.6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      box-shadow: 0 20px 40px rgba(59, 130, 246, 0.75);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.65);
+    }
+
+    .error-text {
+      font-size: 12px;
+      color: #ef4444;
+      display: none;
+    }
+
+    .error-text.visible {
+      display: block;
+      animation: shake 0.35s ease;
+    }
+
+    /* ========= 玫瑰加载动画 ========= */
+    .loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 40;
+      background: radial-gradient(circle at 20% 0%, #fee2f2, #eff6ff);
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    body[data-theme="dark"] .loader {
+      background: radial-gradient(circle at 20% 0%, #211627, #020617);
+    }
+
+    .loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-rose {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 20%, #ffe7f0 0, #ff3f86 50%, #7c1337 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow:
+        0 0 0 1px rgba(248, 250, 252, 0.95),
+        0 24px 60px rgba(244, 63, 94, 0.65);
+      animation: loader-breathe 2.1s ease-in-out infinite;
+    }
+
+    .loader-rose::before,
+    .loader-rose::after {
+      content: "";
+      position: absolute;
+      width: 150%;
+      height: 150%;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      opacity: 0.5;
+      transform: scale(0.6);
+      animation: rose-ring 2.1s ease-in-out infinite;
+    }
+
+    .loader-rose::after {
+      opacity: 0.35;
+      transform: scale(0.9);
+      animation-delay: 0.3s;
+    }
+
+    .loader-rose-emoji {
+      font-size: 48px;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3));
+      animation: rose-tilt 2.1s ease-in-out infinite;
+    }
+
+    .loader-text {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    body[data-theme="dark"] .loader-text {
+      color: #9ca3af;
+    }
+
+    /* ========= 花朵动画 overlay ========= */
+    .flower-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.45s ease;
+      z-index: 30;
+      background: radial-gradient(circle at 10% 0%, rgba(254, 226, 226, 0.1), rgba(15, 23, 42, 0.35));
+      backdrop-filter: blur(12px);
+    }
+
+    .flower-overlay.active {
+      pointer-events: auto;
+      opacity: 1;
+    }
+
+    .flower-pair {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 26px;
+    }
+
+    .flower-icon {
+      font-size: 42px;
+      filter: drop-shadow(0 10px 30px rgba(248, 113, 113, 0.9));
+      opacity: 0;
+      transform: scale(0.2) translateY(40px);
+    }
+
+    .flower-caption {
+      position: absolute;
+      bottom: -32px;
+      font-size: 13px;
+      color: #f9fafb;
+      text-shadow: 0 0 12px rgba(15, 23, 42, 0.9);
+    }
+
+    .flower-overlay[data-variant="1"] .flower-icon:nth-child(1) {
+      animation: flower-bloom-left 0.9s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+
+    .flower-overlay[data-variant="1"] .flower-icon:nth-child(2) {
+      animation: flower-bloom-right 1.02s cubic-bezier(0.19, 1, 0.22, 1) 0.12s forwards;
+    }
+
+    .flower-overlay[data-variant="2"] .flower-icon:nth-child(1),
+    .flower-overlay[data-variant="2"] .flower-icon:nth-child(2) {
+      animation: flower-bloom-up 0.95s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+
+    .flower-overlay[data-variant="2"] .flower-icon:nth-child(2) {
+      animation-delay: 0.16s;
+    }
+
+    .flower-overlay[data-variant="3"] .flower-icon:nth-child(1) {
+      animation: flower-bloom-spin 1.05s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+
+    .flower-overlay[data-variant="3"] .flower-icon:nth-child(2) {
+      animation: flower-bloom-spin 1.05s cubic-bezier(0.19, 1, 0.22, 1) 0.15s forwards;
+    }
+
+    /* ========= 烟花 overlay ========= */
+    .fireworks-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 20% 0%, rgba(15, 23, 42, 0.3), #020617);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+      z-index: 35;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .fireworks-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #fireworks-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .fireworks-hint {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.75);
+      color: #e5e7eb;
+      font-size: 11px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      pointer-events: none;
+    }
+
+    /* ========= 退出 overlay ========= */
+    .goodbye-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: radial-gradient(circle at 20% 0%, rgba(15, 23, 42, 0.8), #020617);
+      color: #e5e7eb;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+
+    .goodbye-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .goodbye-card {
+      padding: 22px 24px 18px;
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      box-shadow: 0 22px 50px rgba(15, 23, 42, 0.95);
+      text-align: center;
+      min-width: 280px;
+    }
+
+    .goodbye-card h2 {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .goodbye-card p {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    /* ========= 动画 keyframes ========= */
+    @keyframes card-pop-in {
+      0% {
+        opacity: 0;
+        transform: translateY(24px) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes orbit-rotate {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes loader-breathe {
+      0% {
+        transform: scale(0.92);
+      }
+      50% {
+        transform: scale(1);
+      }
+      100% {
+        transform: scale(0.92);
+      }
+    }
+
+    @keyframes rose-ring {
+      0% {
+        transform: scale(0.7);
+        opacity: 0.6;
+      }
+      70% {
+        transform: scale(1.1);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1.1);
+        opacity: 0;
+      }
+    }
+
+    @keyframes rose-tilt {
+      0% {
+        transform: translateY(-2px) rotate(-8deg);
+      }
+      50% {
+        transform: translateY(4px) rotate(5deg);
+      }
+      100% {
+        transform: translateY(-2px) rotate(-8deg);
+      }
+    }
+
+    @keyframes flower-bloom-left {
+      0% {
+        opacity: 0;
+        transform: scale(0.2) translate(20px, 40px);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.08) translate(-10px, -10px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translate(-4px, 0);
+      }
+    }
+
+    @keyframes flower-bloom-right {
+      0% {
+        opacity: 0;
+        transform: scale(0.2) translate(-20px, 40px);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.08) translate(10px, -10px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translate(4px, 0);
+      }
+    }
+
+    @keyframes flower-bloom-up {
+      0% {
+        opacity: 0;
+        transform: scale(0.2) translateY(40px);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.1) translateY(-6px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    @keyframes flower-bloom-spin {
+      0% {
+        opacity: 0;
+        transform: scale(0.2) translateY(40px) rotate(-40deg);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.12) translateY(-6px) rotate(8deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0) rotate(0deg);
+      }
+    }
+
+    @keyframes shake {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      20% {
+        transform: translateX(-4px);
+      }
+      40% {
+        transform: translateX(4px);
+      }
+      60% {
+        transform: translateX(-3px);
+      }
+      80% {
+        transform: translateX(3px);
+      }
+    }
+
+    /* ========= 响应式 ========= */
+    @media (max-width: 640px) {
+      .glass-card {
+        padding: 20px 18px 18px;
+        border-radius: 22px;
+      }
+
+      .hero-header {
+        flex-direction: column;
+      }
+
+      .hero-title-block h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <!-- 背景光晕 -->
+  <div class="bg-orb"></div>
+
+  <!-- 顶部栏 -->
+  <header class="top-bar">
+    <div class="top-inner">
+      <div class="brand-chip">
+        <div class="brand-rose"><span>🌹</span></div>
+        <div>
+          <div class="brand-text-main">ROSE LAB</div>
+          <div class="brand-text-sub">发布测试页 · Beta</div>
+        </div>
+      </div>
+
+      <button class="mode-toggle" id="modeToggle">
+        <div class="mode-icon-pill" id="modeIcon">☀️</div>
+        <div class="mode-label" id="modeLabel">亮色模式</div>
+      </button>
+    </div>
+  </header>
+
+  <!-- 玫瑰加载 -->
+  <div class="loader" id="loader">
+    <div class="loader-rose">
+      <div class="loader-rose-emoji">🌹</div>
+    </div>
+    <div class="loader-text">正在为你种下一朵玫瑰…</div>
+  </div>
+
+  <!-- 花朵动画 overlay -->
+  <div class="flower-overlay" id="flowerOverlay" data-variant="1">
+    <div class="flower-pair">
+      <div class="flower-icon">🌹</div>
+      <div class="flower-icon">🌹</div>
+      <div class="flower-caption">已为你准备两朵玫瑰</div>
+    </div>
+  </div>
+
+  <!-- 烟花 overlay -->
+  <div class="fireworks-overlay" id="fireworksOverlay">
+    <canvas id="fireworks-canvas"></canvas>
+    <div class="fireworks-hint">烟花稍后自动结束 · 再点一次也可以收起 ✨</div>
+  </div>
+
+  <!-- 退出 overlay -->
+  <div class="goodbye-overlay" id="goodbyeOverlay">
+    <div class="goodbye-card">
+      <h2>访问结束</h2>
+      <p>你已通过验证，可以安全关闭此页面。</p>
+    </div>
+  </div>
+
+  <!-- 主内容 -->
+  <main class="shell">
+    <!-- 主视图 -->
+    <section class="view view-main view--active" id="view-main">
+      <article class="glass-card">
+        <div class="glass-inner">
+          <header class="hero-header">
+            <div class="hero-title-block">
+              <h1>发布测试页 · 互动体验</h1>
+              <p class="subtitle">
+                在这里，你可以测试动画、交互和视觉效果。所有动效均为实验性质，请安心随便点。
+              </p>
+              <div class="badge-row">
+                <div class="pill-badge">
+                  <span class="pill-dot"></span> 实时动效 · 玻璃质感 UI
+                </div>
+                <div class="pill-badge">
+                  ⏱️ 操作可见反馈 &nbsp;·&nbsp; iOS 风格微动效
+                </div>
+              </div>
+            </div>
+            <div class="hero-minibadge">
+              <span>●</span> LIVE
+              <span>TEST</span>
+            </div>
+          </header>
+
+          <section class="hero-grid">
+            <!-- 倒计时 -->
+            <div class="countdown-card">
+              <div class="countdown-label-row">
+                <div>当前测试时段倒计时</div>
+                <div class="countdown-chip">发布窗口 · OPEN</div>
+              </div>
+              <div class="countdown-time" id="countdownDisplay">
+                00:15:00
+              </div>
+              <div class="countdown-subtext">
+                时间结束后，你仍可继续访问本页面，只是计时会归零。
+              </div>
+              <div class="countdown-orbit"></div>
+            </div>
+
+            <!-- 附加说明 -->
+            <div class="secondary-card">
+              <div>操作说明：</div>
+              <div>
+                点击下面四个按钮，分别触发
+                <strong>玫瑰花动画 / 烟花特效 / 维护页 / 密码验证系统</strong>。
+              </div>
+              <div class="secondary-chip-row">
+                <div class="tiny-chip">• 支持亮/暗色模式</div>
+                <div class="tiny-chip">• 桌面与移动自适应</div>
+                <div class="tiny-chip">• 每次操作均带动效反馈</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 按钮组 -->
+          <section class="actions-row">
+            <button class="action-btn" id="btnFlower">
+              <div class="btn-icon">🌹</div>
+              <div class="btn-text-wrapper">
+                <span>我要一朵花</span>
+              </div>
+            </button>
+
+            <button class="action-btn" id="btnFireworks">
+              <div class="btn-icon fireworks">🎆</div>
+              <div class="btn-text-wrapper">
+                <span>我要一次烟花</span>
+              </div>
+            </button>
+
+            <button class="action-btn" id="btnLater">
+              <div class="btn-icon later">🕒</div>
+              <div class="btn-text-wrapper">
+                <span>过会儿再来</span>
+              </div>
+            </button>
+
+            <button class="action-btn" id="btnAccess">
+              <div class="btn-icon lock">🔒</div>
+              <div class="btn-text-wrapper">
+                <span>获取访问权限</span>
+              </div>
+            </button>
+          </section>
+        </div>
+      </article>
+    </section>
+
+    <!-- 页面一：网站维护中 -->
+    <section class="view" id="view-later">
+      <article class="simple-card">
+        <div class="simple-inner">
+          <div class="simple-icon-circle">🛠</div>
+          <div class="simple-title">网站维护中 · Maintenance</div>
+          <div class="simple-sub">
+            当前测试环境正在进行维护与调整。<br />
+            你可以稍后再次访问，或返回刚才的互动测试页继续体验动画效果。
+          </div>
+          <div class="simple-pills">
+            <div class="simple-pill">实时更新配置</div>
+            <div class="simple-pill">性能调优中</div>
+            <div class="simple-pill">预计短暂停留</div>
+          </div>
+          <button class="ghost-back-btn" data-back>
+            <span>←</span>
+            <span>返回测试页</span>
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <!-- 页面二：密码访问 -->
+    <section class="view" id="view-access">
+      <article class="simple-card">
+        <div class="password-inner">
+          <div class="simple-icon-circle">🔐</div>
+          <div class="password-title">访问权限验证</div>
+          <div class="password-sub">
+            请输入访问密码以结束本次测试体验。密码仅作演示用途，你可以在代码中自行修改。
+          </div>
+
+          <form class="password-form" id="passwordForm">
+            <div class="input-shell">
+              <span>密码</span>
+              <input
+                type="password"
+                class="password-input"
+                id="passwordInput"
+                placeholder="输入演示密码，例如：rose2025"
+                autocomplete="off"
+              />
+            </div>
+            <button type="submit" class="submit-btn">
+              <span>确认并退出</span> <span>↗</span>
+            </button>
+            <div class="error-text" id="passwordError">密码错误，请重试。</div>
+          </form>
+
+          <button class="ghost-back-btn" data-back>
+            <span>←</span>
+            <span>返回测试页</span>
+          </button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    // ========== 主题切换 ==========
+    (function () {
+      const body = document.body;
+      const modeToggle = document.getElementById("modeToggle");
+      const modeIcon = document.getElementById("modeIcon");
+      const modeLabel = document.getElementById("modeLabel");
+
+      function setTheme(theme) {
+        body.setAttribute("data-theme", theme);
+        if (theme === "dark") {
+          modeIcon.textContent = "🌙";
+          modeLabel.textContent = "暗色模式";
+        } else {
+          modeIcon.textContent = "☀️";
+          modeLabel.textContent = "亮色模式";
+        }
+        try {
+          localStorage.setItem("rose-theme", theme);
+        } catch (e) {}
+      }
+
+      // 初始
+      let initialTheme = "light";
+      try {
+        const stored = localStorage.getItem("rose-theme");
+        if (stored === "dark" || stored === "light") {
+          initialTheme = stored;
+        }
+      } catch (e) {}
+      setTheme(initialTheme);
+
+      modeToggle.addEventListener("click", () => {
+        const current = body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        setTheme(current === "dark" ? "light" : "dark");
+      });
+    })();
+
+    // ========== 视图切换 ==========
+    const viewMain = document.getElementById("view-main");
+    const viewLater = document.getElementById("view-later");
+    const viewAccess = document.getElementById("view-access");
+
+    function switchView(target) {
+      [viewMain, viewLater, viewAccess].forEach((v) => v.classList.remove("view--active"));
+      if (target === "later") {
+        viewLater.classList.add("view--active");
+      } else if (target === "access") {
+        viewAccess.classList.add("view--active");
+      } else {
+        viewMain.classList.add("view--active");
+      }
+    }
+
+    document.querySelectorAll("[data-back]").forEach((btn) => {
+      btn.addEventListener("click", () => switchView("main"));
+    });
+
+    // ========== 倒计时 ==========
+    (function () {
+      const countdownDisplay = document.getElementById("countdownDisplay");
+      const DURATION_MS = 15 * 60 * 1000; // 15 分钟
+      const endTime = Date.now() + DURATION_MS;
+
+      function format(ms) {
+        const totalSec = Math.max(0, Math.floor(ms / 1000));
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        const ss = String(s).padStart(2, "0");
+        return `${hh}:${mm}:${ss}`;
+      }
+
+      function tick() {
+        const left = endTime - Date.now();
+        countdownDisplay.textContent = format(left);
+        if (left <= 0) return;
+        requestAnimationFrame(tick);
+      }
+
+      tick();
+    })();
+
+    // ========== 玫瑰加载 ==========
+    window.addEventListener("load", () => {
+      const loader = document.getElementById("loader");
+      setTimeout(() => {
+        loader.classList.add("hidden");
+      }, 1300);
+    });
+
+    // ========== 按钮逻辑 ==========
+    const btnFlower = document.getElementById("btnFlower");
+    const btnFireworks = document.getElementById("btnFireworks");
+    const btnLater = document.getElementById("btnLater");
+    const btnAccess = document.getElementById("btnAccess");
+
+    // 花朵动画
+    (function () {
+      const overlay = document.getElementById("flowerOverlay");
+      let flowerTimeout = null;
+
+      function triggerFlowerAnimation() {
+        const variant = Math.floor(Math.random() * 3) + 1; // 1~3
+        overlay.setAttribute("data-variant", String(variant));
+        overlay.classList.add("active");
+
+        if (flowerTimeout) clearTimeout(flowerTimeout);
+        flowerTimeout = setTimeout(() => {
+          overlay.classList.remove("active");
+        }, 2200);
+      }
+
+      btnFlower.addEventListener("click", () => {
+        triggerFlowerAnimation();
+      });
+
+      overlay.addEventListener("click", () => {
+        overlay.classList.remove("active");
+      });
+    })();
+
+    // 烟花动画
+    (function () {
+      const overlay = document.getElementById("fireworksOverlay");
+      const canvas = document.getElementById("fireworks-canvas");
+      const ctx = canvas.getContext("2d");
+      let fireworks = [];
+      let particles = [];
+      let animationId = null;
+      let running = false;
+
+      function resize() {
+        canvas.width = window.innerWidth * devicePixelRatio;
+        canvas.height = window.innerHeight * devicePixelRatio;
+        ctx.scale(devicePixelRatio, devicePixelRatio);
+      }
+      resize();
+      window.addEventListener("resize", resize);
+
+      class Firework {
+        constructor(startX, startY, targetX, targetY, color) {
+          this.x = startX;
+          this.y = startY;
+          this.sx = startX;
+          this.sy = startY;
+          this.tx = targetX;
+          this.ty = targetY;
+          this.distanceToTarget = Math.hypot(targetX - startX, targetY - startY);
+          this.distanceTraveled = 0;
+          this.speed = 4 + Math.random() * 2;
+          this.angle = Math.atan2(targetY - startY, targetX - startX);
+          this.brightness = 50 + Math.random() * 20;
+          this.color = color;
+          this.coordinates = [];
+          this.coordinateCount = 3;
+          while (this.coordinates.length < this.coordinateCount) {
+            this.coordinates.push([this.x, this.y]);
+          }
+        }
+
+        update(index) {
+          this.coordinates.pop();
+          this.coordinates.unshift([this.x, this.y]);
+
+          const vx = Math.cos(this.angle) * this.speed;
+          const vy = Math.sin(this.angle) * this.speed;
+
+          this.x += vx;
+          this.y += vy;
+          this.distanceTraveled = Math.hypot(this.x - this.sx, this.y - this.sy);
+
+          if (this.distanceTraveled >= this.distanceToTarget) {
+            createParticles(this.tx, this.ty, this.color);
+            fireworks.splice(index, 1);
+          }
+        }
+
+        draw() {
+          ctx.beginPath();
+          const lastCoord = this.coordinates[this.coordinates.length - 1];
+          ctx.moveTo(lastCoord[0], lastCoord[1]);
+          ctx.lineTo(this.x, this.y);
+          ctx.strokeStyle = `hsl(${this.color},100%,${this.brightness}%)`;
+          ctx.stroke();
+        }
+      }
+
+      class Particle {
+        constructor(x, y, color) {
+          this.x = x;
+          this.y = y;
+          this.color = color;
+          this.speed = Math.random() * 5 + 1;
+          this.angle = Math.random() * Math.PI * 2;
+          this.friction = 0.95;
+          this.gravity = 0.2;
+          this.hue = color + Math.random() * 20 - 10;
+          this.brightness = 50 + Math.random() * 10;
+          this.alpha = 1;
+          this.decay = 0.015 + Math.random() * 0.02;
+          this.coordinates = [];
+          this.coordinateCount = 5;
+          while (this.coordinates.length < this.coordinateCount) {
+            this.coordinates.push([this.x, this.y]);
+          }
+        }
+
+        update(index) {
+          this.coordinates.pop();
+          this.coordinates.unshift([this.x, this.y]);
+
+          this.speed *= this.friction;
+          this.x += Math.cos(this.angle) * this.speed;
+          this.y += Math.sin(this.angle) * this.speed + this.gravity;
+          this.alpha -= this.decay;
+
+          if (this.alpha <= this.decay) {
+            particles.splice(index, 1);
+          }
+        }
+
+        draw() {
+          ctx.beginPath();
+          const lastCoord = this.coordinates[this.coordinates.length - 1];
+          ctx.moveTo(lastCoord[0], lastCoord[1]);
+          ctx.lineTo(this.x, this.y);
+          ctx.strokeStyle = `hsla(${this.hue},100%,${this.brightness}%,${this.alpha})`;
+          ctx.stroke();
+        }
+      }
+
+      function createParticles(x, y, color) {
+        const count = 30 + Math.floor(Math.random() * 25);
+        for (let i = 0; i < count; i++) {
+          particles.push(new Particle(x, y, color));
+        }
+      }
+
+      function launchFirework() {
+        const startX = window.innerWidth / 2;
+        const startY = window.innerHeight + 10;
+        const targetX = Math.random() * window.innerWidth * 0.8 + window.innerWidth * 0.1;
+        const targetY = Math.random() * window.innerHeight * 0.4 + window.innerHeight * 0.1;
+        const color = Math.floor(Math.random() * 360);
+        fireworks.push(new Firework(startX, startY, targetX, targetY, color));
+      }
+
+      function loop() {
+        animationId = requestAnimationFrame(loop);
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = "lighter";
+
+        fireworks.forEach((fw, i) => {
+          fw.update(i);
+          fw.draw();
+        });
+
+        particles.forEach((p, i) => {
+          p.update(i);
+          p.draw();
+        });
+
+        if (Math.random() < 0.05) {
+          launchFirework();
+        }
+      }
+
+      function start() {
+        if (running) return;
+        running = true;
+        overlay.classList.add("active");
+        launchFirework();
+        loop();
+      }
+
+      function stop() {
+        running = false;
+        overlay.classList.remove("active");
+        fireworks = [];
+        particles = [];
+        if (animationId) cancelAnimationFrame(animationId);
+      }
+
+      btnFireworks.addEventListener("click", () => {
+        if (running) {
+          stop();
+        } else {
+          start();
+          // 自动结束
+          setTimeout(stop, 5500);
+        }
+      });
+
+      overlay.addEventListener("click", () => {
+        if (running) {
+          stop();
+        }
+      });
+    })();
+
+    // 页面切换按钮
+    btnLater.addEventListener("click", () => {
+      switchView("later");
+    });
+
+    btnAccess.addEventListener("click", () => {
+      switchView("access");
+      setTimeout(() => {
+        const input = document.getElementById("passwordInput");
+        if (input) input.focus();
+      }, 260);
+    });
+
+    // ========== 密码表单 ==========
+    (function () {
+      const form = document.getElementById("passwordForm");
+      const input = document.getElementById("passwordInput");
+      const error = document.getElementById("passwordError");
+      const goodbyeOverlay = document.getElementById("goodbyeOverlay");
+
+      const CORRECT_PASSWORD = "rose2025"; // 你可以自行修改
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const value = input.value.trim();
+        if (!value) {
+          error.textContent = "请输入密码。";
+          error.classList.add("visible");
+          return;
+        }
+
+        if (value === CORRECT_PASSWORD) {
+          error.classList.remove("visible");
+          // 退出动画
+          goodbyeOverlay.classList.add("active");
+          // 如需真正跳转到别的网站，在这里改成 location.href = 'https://你的地址';
+          setTimeout(() => {
+            // 示例：什么都不做，仅停留在“访问结束”提示
+          }, 2200);
+        } else {
+          error.textContent = "密码错误，请重试。";
+          error.classList.remove("visible");
+          // 强制触发 reflow 以重启 shake 动画
+          void error.offsetWidth;
+          error.classList.add("visible");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
