@@ -1438,7 +1438,7 @@
             <button class="action-btn" id="btnAccess">
               <div class="btn-icon lock">🔒</div>
               <div class="btn-text-wrapper">
-                <span>我现在就要看😼😼</span>
+                <span>测试通道😼😼</span>
               </div>
             </button>
           </section>
@@ -1575,16 +1575,16 @@
 (function () {
   const countdownDisplay = document.getElementById("countdownDisplay");
 
-  // 这里改成你想要的“目标物理时间”（本地时间）
-  const TARGET_TIME_STR = "2025-12-08T22:00:00"; // 2025年12月4日 22:00:00
+  // “目标时间”（本地时间）
+  const TARGET_TIME_STR = "2025-12-07T22:00:00"; // 2025年12月4日 22:00:00
   const targetTime = new Date(TARGET_TIME_STR).getTime();
 
 // ========== 显示模式变量 ==========
 // 最高显示到“天”
-const displayModeDay = false;
+const displayModeDay = true;
 
 // 最高显示到“时” （注意：此模式不显示“时”字，用 HH:MM:SS）
-const displayModeHour = true;
+const displayModeHour = false;
 
 // ========== 倒计时格式函数 ==========
 function format(ms) {
@@ -1901,4 +1901,5 @@ function format(ms) {
   </script>
 </body>
 </html>
+
 
